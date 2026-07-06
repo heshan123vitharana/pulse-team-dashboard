@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Pulse Team Dashboard"
     
     # Database Settings
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/pulse_db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+psycopg://postgres:password@localhost:5432/pulse_db")
     
     # JWT Auth Settings
     SECRET_KEY: str = os.getenv("SECRET_KEY", "SUPER_SECRET_KEY_FOR_SISENCO_ASSIGNMENT_1234567890")

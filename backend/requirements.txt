@@ -2,7 +2,8 @@ fastapi
 uvicorn
 sqlalchemy
 psycopg[binary]
-pydantic
+pydantic[email]
+email-validator
 pydantic-settings
 passlib[bcrypt]
 pyjwt
