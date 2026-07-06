@@ -1,0 +1,9 @@
+[pyrefly]
+# Point Pyrefly at the venv interpreter so it can resolve installed packages
+python_interpreter = "venv/Scripts/python.exe"
+
+# Tell Pyrefly that the project root (where `app` package lives) is here
+project_root = "."
+
+# Search paths — "." lets `app` be found as a top-level package
+search_path = ["."]
