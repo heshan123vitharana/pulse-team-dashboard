@@ -1,7 +1,9 @@
-from typing import List
+from typing import List, Optional
+from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from ..database import get_db
 from .. import models, schemas
@@ -43,17 +45,77 @@ def get_my_reports(
     )
 
 
+# ==========================================
+# ADVANCED TEAM REPORTS WITH FILTERS FOR MANAGER
+# ==========================================
 @router.get("/", response_model=List[schemas.WeeklyReportResponse])
 def get_all_reports(
+    user_id: Optional[int] = Query(None, description="Filter by Team Member ID"),
+    project_id: Optional[int] = Query(None, description="Filter by Project ID"),
+    start_date: Optional[date] = Query(None, description="Filter from week start date"),
+    end_date: Optional[date] = Query(None, description="Filter up to week end date"),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(check_manager_role),
 ):
-    """Get all weekly reports across the team. Manager only."""
-    return (
-        db.query(models.WeeklyReport)
-        .order_by(models.WeeklyReport.submitted_at.desc())
-        .all()
-    )
+    """Get all weekly reports across the team with extensive filtering capabilities. Manager only."""
+    query = db.query(models.WeeklyReport)
+    
+    if user_id:
+        query = query.filter(models.WeeklyReport.user_id == user_id)
+    if project_id:
+        query = query.filter(models.WeeklyReport.project_id == project_id)
+    if start_date:
+        query = query.filter(models.WeeklyReport.week_start_date >= start_date)
+    if end_date:
+        query = query.filter(models.WeeklyReport.week_end_date <= end_date)
+        
+    return query.order_by(models.WeeklyReport.submitted_at.desc()).all()
+
+
+# ==========================================
+# DASHBOARD METRICS FOR CHARTS & VISUAL INSIGHTS
+# ==========================================
+@router.get("/dashboard-metrics")
+def get_dashboard_metrics(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(check_manager_role),
+):
+    """Get visual insights and counters for the manager dashboard charts."""
+    # 1. Total reports submitted this week / overall
+    total_reports = db.query(models.WeeklyReport).count()
+    
+    # 2. Open blockers count (filtering out empty rows or 'none')
+    open_blockers = db.query(models.WeeklyReport).filter(
+        models.WeeklyReport.blockers != "",
+        func.lower(models.WeeklyReport.blockers) != "none"
+    ).count()
+    
+    # 3. Compliance status distribution (Grouped for Pie Chart)
+    status_counts = db.query(
+        models.WeeklyReport.submission_status, 
+        func.count(models.WeeklyReport.id)
+    ).group_by(models.WeeklyReport.submission_status).all()
+    
+    compliance_chart = [{"status": row[0], "count": row[1]} for row in status_counts]
+    
+    # 4. Workload distribution by project (Grouped for Bar Chart)
+    project_distribution = db.query(
+        models.Project.project_name,
+        func.count(models.WeeklyReport.id)
+    ).join(models.WeeklyReport).group_by(models.Project.project_name).all()
+    
+    project_chart = [{"project": row[0], "count": row[1]} for row in project_distribution]
+
+    return {
+        "summary": {
+            "total_reports": total_reports,
+            "open_blockers": open_blockers,
+        },
+        "charts": {
+            "compliance": compliance_chart,
+            "project_workload": project_chart
+        }
+    }
 
 
 @router.get("/{report_id}", response_model=schemas.WeeklyReportResponse)
