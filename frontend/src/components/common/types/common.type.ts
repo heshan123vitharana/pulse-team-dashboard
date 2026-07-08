@@ -1,0 +1,2 @@
+export type BadgeColorType = 'green' | 'red' | 'yellow' | 'blue' | 'indigo' | 'purple' | 'pink' | 'gray' | 'black' | 'orange';
+export type ColorSchemaType = 'green' | 'red' | 'yellow' | 'blue' | 'indigo' | 'purple' | 'pink' | 'gray' | 'black' | 'orange';
