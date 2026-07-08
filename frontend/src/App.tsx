@@ -9,6 +9,7 @@ import {
 import authService from "@/api/auth";
 import LoginPage from "@/pages/Login";
 import DashboardPage from "@/pages/Dashboard";
+import DashboardLayout from "@/layouts/DashboardLayout";
 
 // ─── Protected Route ──────────────────────────────────────────────────────────
 
@@ -48,7 +49,9 @@ export default function App(): JSX.Element {
 
         {/* ── Protected routes ──────────────────────── */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+          </Route>
         </Route>
 
         {/* ── Redirects ─────────────────────────────── */}
