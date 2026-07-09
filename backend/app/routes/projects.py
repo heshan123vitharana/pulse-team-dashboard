@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from ..database import get_db
 from .. import models, schemas
@@ -15,8 +15,11 @@ def get_projects(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    """List all projects. Accessible by all authenticated users."""
-    return db.query(models.Project).all()
+    """List projects. Managers see all, members see only their assigned projects."""
+    if current_user.role.role_name.lower() == "manager":
+        return db.query(models.Project).options(selectinload(models.Project.users)).all()
+    else:
+        return current_user.projects
 
 
 @router.post("/", response_model=schemas.ProjectResponse, status_code=status.HTTP_201_CREATED)
@@ -79,3 +82,43 @@ def delete_project(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
     db.delete(project)
     db.commit()
+
+@router.post("/{project_id}/assign/{user_id}", status_code=status.HTTP_200_OK)
+def assign_user(
+    project_id: int,
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(check_manager_role),
+):
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user not in project.users:
+        project.users.append(user)
+        db.commit()
+    
+    return {"message": "User assigned to project"}
+
+@router.delete("/{project_id}/assign/{user_id}", status_code=status.HTTP_200_OK)
+def unassign_user(
+    project_id: int,
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(check_manager_role),
+):
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user in project.users:
+        project.users.remove(user)
+        db.commit()
+    
+    return {"message": "User removed from project"}

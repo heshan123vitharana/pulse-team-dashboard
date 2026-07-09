@@ -47,6 +47,7 @@ class ProjectUpdate(BaseModel):
 
 class ProjectResponse(ProjectBase):
     id: int
+    users: list[UserResponse] = []
 
     class Config:
         from_attributes = True

@@ -6,6 +6,7 @@ export interface Project {
   description: string;
   createdAt?: string;
   updatedAt?: string;
+  users?: { id: number; name: string; email: string; role_id: number }[];
 }
 
 export interface ProjectCreate {
@@ -43,4 +44,18 @@ export const updateProject = async (id: number, data: Partial<Omit<Project, "id"
  */
 export const deleteProject = async (id: number): Promise<void> => {
   await apiClient.delete(`/api/v1/projects/${id}`);
+};
+
+/**
+ * Assigns a user to a project.
+ */
+export const assignUserToProject = async (projectId: number, userId: number): Promise<void> => {
+  await apiClient.post(`/api/v1/projects/${projectId}/assign/${userId}`);
+};
+
+/**
+ * Removes a user from a project.
+ */
+export const unassignUserFromProject = async (projectId: number, userId: number): Promise<void> => {
+  await apiClient.delete(`/api/v1/projects/${projectId}/assign/${userId}`);
 };

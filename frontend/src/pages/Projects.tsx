@@ -1,6 +1,7 @@
 import { type JSX, useState, useEffect } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import { getProjects, createProject, updateProject, deleteProject, type Project } from "@/api/projects";
+import { Plus, Pencil, Trash2, Users } from "lucide-react";
+import { getProjects, createProject, updateProject, deleteProject, assignUserToProject, unassignUserFromProject, type Project } from "@/api/projects";
+import authService, { type User } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,9 +25,12 @@ export default function ProjectsPage(): JSX.Element {
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isManageTeamDialogOpen, setIsManageTeamDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [managingProject, setManagingProject] = useState<Project | null>(null);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
 
   // Form State
   const [name, setName] = useState("");
@@ -47,8 +51,19 @@ export default function ProjectsPage(): JSX.Element {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const data = await authService.getUsers();
+      // Filter out managers if we only want team members, or keep all
+      setAllUsers(data);
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
+    fetchUsers();
   }, []);
 
   const handleCreateProject = async (e: React.FormEvent) => {
@@ -141,6 +156,40 @@ export default function ProjectsPage(): JSX.Element {
       setDescription("");
       setFormError(null);
       setEditingProject(null);
+    }
+  };
+
+  const openManageTeamDialog = (project: Project) => {
+    setManagingProject(project);
+    setIsManageTeamDialogOpen(true);
+  };
+
+  const handleToggleAssignment = async (userId: number) => {
+    if (!managingProject) return;
+    const isAssigned = managingProject.users?.some(u => u.id === userId);
+    
+    try {
+      if (isAssigned) {
+        await unassignUserFromProject(managingProject.id, userId);
+      } else {
+        await assignUserToProject(managingProject.id, userId);
+      }
+      // Re-fetch projects to get updated assignment list
+      await fetchProjects();
+      
+      // Update managingProject reference to the new fetched one so the dialog UI updates instantly
+      setManagingProject(prev => {
+        if (!prev) return prev;
+        const updated = projects.find(p => p.id === prev.id);
+        if (updated) {
+           // We need the NEW list of users, but we just called fetchProjects. 
+           // State update will trigger re-render anyway, but let's just handle it via the projects array directly in the render
+        }
+        return prev;
+      });
+    } catch (err) {
+      console.error("Failed to toggle assignment", err);
+      alert("Failed to update user assignment");
     }
   };
 
@@ -267,6 +316,47 @@ export default function ProjectsPage(): JSX.Element {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Manage Team Dialog */}
+        <Dialog open={isManageTeamDialogOpen} onOpenChange={setIsManageTeamDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Manage Team for {managingProject?.project_name}</DialogTitle>
+              <DialogDescription>
+                Assign or remove team members from this project.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-3 py-4 max-h-[300px] overflow-y-auto pr-2">
+              {allUsers.length === 0 && <p className="text-sm text-muted-foreground">No users found.</p>}
+              {allUsers.map(user => {
+                // Find the fresh project object from state to check assignments
+                const freshProject = projects.find(p => p.id === managingProject?.id);
+                const isAssigned = freshProject?.users?.some(u => u.id === user.id) || false;
+                
+                return (
+                  <div key={user.id} className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border">
+                    <div>
+                      <p className="font-medium text-sm">{user.name}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                    <Button 
+                      variant={isAssigned ? "destructive" : "secondary"} 
+                      size="sm"
+                      onClick={() => handleToggleAssignment(user.id)}
+                    >
+                      {isAssigned ? "Remove" : "Assign"}
+                    </Button>
+                  </div>
+                )
+              })}
+            </div>
+            <DialogFooter>
+              <Button type="button" onClick={() => setIsManageTeamDialogOpen(false)}>
+                Done
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Global Error State */}
@@ -324,6 +414,10 @@ export default function ProjectsPage(): JSX.Element {
                 </p>
               </CardContent>
               <CardFooter className="flex justify-end gap-2 pt-2 border-t mt-auto">
+                <Button variant="outline" size="sm" onClick={() => openManageTeamDialog(project)} className="mr-auto">
+                  <Users className="mr-2 h-4 w-4" />
+                  Team ({project.users?.length || 0})
+                </Button>
                 <Button variant="ghost" size="icon" onClick={() => openEditDialog(project)} className="text-muted-foreground hover:text-foreground">
                   <Pencil className="h-4 w-4" />
                 </Button>

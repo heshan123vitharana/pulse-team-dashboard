@@ -1,7 +1,14 @@
 from datetime import date, datetime
-from sqlalchemy import Integer, String, Text, Date, DateTime, ForeignKey, func
+from sqlalchemy import Integer, String, Text, Date, DateTime, ForeignKey, func, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
+
+user_projects = Table(
+    "user_projects",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("project_id", Integer, ForeignKey("projects.id", ondelete="CASCADE"), primary_key=True)
+)
 
 # ==========================================
 # 1. ROLES TABLE
@@ -32,6 +39,7 @@ class User(Base):
     # Relationships
     role = relationship("Role", back_populates="users")
     reports = relationship("WeeklyReport", back_populates="user")
+    projects = relationship("Project", secondary=user_projects, back_populates="users")
 
 
 # ==========================================
@@ -46,6 +54,7 @@ class Project(Base):
 
     # Relationships
     reports = relationship("WeeklyReport", back_populates="project")
+    users = relationship("User", secondary=user_projects, back_populates="projects")
 
 
 # ==========================================
