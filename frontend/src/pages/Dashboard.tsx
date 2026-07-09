@@ -252,7 +252,7 @@ function TeamMemberDashboard(): JSX.Element {
           </p>
         </div>
         <Button asChild size="lg" className="shrink-0">
-          <Link to="/reports/new" className="gap-2">
+          <Link to="/submit-report" className="gap-2">
             <Plus className="h-4 w-4" />
             Submit Weekly Report
           </Link>
@@ -263,9 +263,6 @@ function TeamMemberDashboard(): JSX.Element {
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold tracking-tight">Recent Reports</h3>
-          <Button variant="link" asChild className="text-muted-foreground">
-            <Link to="/reports">View all</Link>
-          </Button>
         </div>
 
         {loading ? (
@@ -325,7 +322,7 @@ function TeamMemberDashboard(): JSX.Element {
               You haven't submitted any weekly reports.
             </p>
             <Button variant="outline" className="mt-4 gap-2" asChild>
-              <Link to="/reports/new">
+              <Link to="/submit-report">
                 <Plus className="h-4 w-4" />
                 Create your first report
               </Link>

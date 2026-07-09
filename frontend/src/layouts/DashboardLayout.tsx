@@ -24,14 +24,6 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-// ─── Navigation Items ────────────────────────────────────────────────────────
-
-const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "My Reports", href: "/reports", icon: BarChart3 },
-  { name: "Projects", href: "/projects", icon: FolderKanban },
-];
-
 // ─── DashboardLayout Component ───────────────────────────────────────────────
 
 export default function DashboardLayout(): JSX.Element {
@@ -41,6 +33,17 @@ export default function DashboardLayout(): JSX.Element {
 
   const role = authService.getRole();
   const userInitials = "U"; // Default initials, would come from actual user profile in a real app
+  
+  const isManager = role?.toLowerCase() === "manager";
+
+  // Dynamically generate navigation items based on role
+  const navItems = [
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    ...(isManager
+      ? [{ name: "Team Reports", href: "/team-reports", icon: BarChart3 }]
+      : [{ name: "Submit Report", href: "/submit-report", icon: BarChart3 }]),
+    { name: "Projects", href: "/projects", icon: FolderKanban },
+  ];
 
   const handleLogout = (): void => {
     authService.logout();
