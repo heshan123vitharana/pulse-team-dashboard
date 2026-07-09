@@ -41,7 +41,7 @@ function ProtectedRoute(): JSX.Element {
 function ManagerRoute(): JSX.Element {
   const role = authService.getRole();
   
-  if (role !== "manager") {
+  if (role?.toLowerCase() !== "manager") {
     return <Navigate to="/dashboard" replace />;
   }
 
