@@ -90,6 +90,12 @@ def get_dashboard_metrics(
         func.lower(models.WeeklyReport.blockers) != "none"
     ).count()
     
+    # Active projects count
+    active_projects = db.query(models.Project).count()
+    
+    # Team members count
+    team_members = db.query(models.User).count()
+    
     # 3. Compliance status distribution (Grouped for Pie Chart)
     status_counts = db.query(
         models.WeeklyReport.submission_status, 
@@ -110,6 +116,8 @@ def get_dashboard_metrics(
         "summary": {
             "total_reports": total_reports,
             "open_blockers": open_blockers,
+            "active_projects": active_projects,
+            "team_members": team_members,
         },
         "charts": {
             "compliance": compliance_chart,

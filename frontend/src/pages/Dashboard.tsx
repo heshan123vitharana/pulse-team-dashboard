@@ -31,6 +31,8 @@ interface DashboardMetrics {
   summary: {
     total_reports: number;
     open_blockers: number;
+    active_projects: number;
+    team_members: number;
   };
   charts: {
     compliance: { status: string; count: number }[];
@@ -76,7 +78,7 @@ function ManagerDashboard(): JSX.Element {
         setMetrics(response.data);
       } catch (err: unknown) {
         console.error(err);
-        setError("Failed to load dashboard metrics. Please try again later.");
+        setError("Failed to load dashboard metrics.");
       } finally {
         setLoading(false);
       }
@@ -122,22 +124,43 @@ function ManagerDashboard(): JSX.Element {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-primary text-primary-foreground border-none">
+        <Card className="bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100 border-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
-            <RefreshCw className="h-4 w-4 text-primary-foreground/70" />
+            <Activity className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold mb-1">{metrics.summary.total_reports}</div>
           </CardContent>
         </Card>
-        <Card className="bg-primary text-primary-foreground border-none">
+        
+        <Card className="bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-100 border-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Open Blockers</CardTitle>
-            <RefreshCw className="h-4 w-4 text-primary-foreground/70" />
+            <AlertCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold mb-1">{metrics.summary.open_blockers}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-100 border-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
+            <BarChart className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold mb-1">{metrics.summary.active_projects}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-purple-50 dark:bg-purple-900/20 text-purple-900 dark:text-purple-100 border-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
+            <Activity className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold mb-1">{metrics.summary.team_members}</div>
           </CardContent>
         </Card>
       </div>
