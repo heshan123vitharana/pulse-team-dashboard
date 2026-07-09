@@ -123,7 +123,7 @@ export default function SubmitReportPage(): JSX.Element {
 
       <Card>
         <form onSubmit={handleSubmit}>
-          <CardHeader>
+          <CardHeader className="pb-4">
             <CardTitle>Report Details</CardTitle>
             <CardDescription>All fields marked with an asterisk (*) are required.</CardDescription>
           </CardHeader>
@@ -228,7 +228,7 @@ export default function SubmitReportPage(): JSX.Element {
               />
             </div>
 
-            <div className="grid gap-2 md:max-w-[50%]">
+            <div className="grid gap-2 mb-6">
               <Label htmlFor="hours_worked">Hours Worked (Optional)</Label>
               <Input
                 id="hours_worked"

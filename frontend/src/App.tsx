@@ -6,6 +6,7 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
+import { Toaster } from "sonner";
 import authService from "@/api/auth";
 import LoginPage from "@/pages/Login";
 import DashboardPage from "@/pages/Dashboard";
@@ -68,34 +69,37 @@ function ManagerRoute(): JSX.Element {
  */
 export default function App(): JSX.Element {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* ── Public routes ─────────────────────────── */}
-        <Route path="/login" element={<LoginPage />} />
+    <>
+      <BrowserRouter>
+        <Routes>
+          {/* ── Public routes ─────────────────────────── */}
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* ── Protected routes ──────────────────────── */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/my-reports" element={<MyReportsPage />} />
-            <Route path="/submit-report" element={<SubmitReportPage />} />
-            <Route path="/submit-report/:id" element={<SubmitReportPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            
-            {/* Manager-only routes */}
-            <Route element={<ManagerRoute />}>
-              <Route path="/team-reports" element={<TeamReportsPage />} />
-              <Route path="/users" element={<UsersPage />} />
+          {/* ── Protected routes ──────────────────────── */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/projects" element={<ProjectsPage />} />
+              <Route path="/my-reports" element={<MyReportsPage />} />
+              <Route path="/submit-report" element={<SubmitReportPage />} />
+              <Route path="/submit-report/:id" element={<SubmitReportPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              
+              {/* Manager-only routes */}
+              <Route element={<ManagerRoute />}>
+                <Route path="/team-reports" element={<TeamReportsPage />} />
+                <Route path="/users" element={<UsersPage />} />
+              </Route>
             </Route>
           </Route>
-        </Route>
 
-        {/* ── Redirects ─────────────────────────────── */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </BrowserRouter>
+          {/* ── Redirects ─────────────────────────────── */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </BrowserRouter>
+      <Toaster position="top-right" richColors />
+    </>
   );
 }

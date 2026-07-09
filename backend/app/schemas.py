@@ -12,6 +12,10 @@ class UserCreate(UserBase):
     password: str
     role_id: int
 
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+
 class UserResponse(UserBase):
     id: int
     role_id: int

@@ -15,4 +15,5 @@ export default defineConfig({
     },
   },
 })
+// Force Vite server restart to pick up newly installed sonner package
 

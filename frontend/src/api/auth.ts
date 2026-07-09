@@ -122,6 +122,18 @@ const authService = {
     const response = await apiClient.post<User>("/api/v1/auth/register", data);
     return response.data;
   },
+
+  /** Get the current logged in user details */
+  async getMe(): Promise<User> {
+    const response = await apiClient.get<User>("/api/v1/auth/me");
+    return response.data;
+  },
+
+  /** Update the current logged in user details */
+  async updateMe(data: { name?: string; email?: string }): Promise<User> {
+    const response = await apiClient.put<User>("/api/v1/auth/me", data);
+    return response.data;
+  },
 };
 
 export default authService;

@@ -57,6 +57,36 @@ def register_user(
     return new_user
 
 
+@router.get("/me", response_model=schemas.UserResponse)
+def get_current_user_details(current_user: models.User = Depends(auth_utils.get_current_user)):
+    """Get current logged in user details."""
+    return current_user
+
+
+@router.put("/me", response_model=schemas.UserResponse)
+def update_current_user_details(
+    user_update: schemas.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth_utils.get_current_user),
+):
+    """Update current logged in user details."""
+    if user_update.name is not None:
+        current_user.name = user_update.name
+    if user_update.email is not None:
+        # Check if email is already taken by another user
+        existing = db.query(models.User).filter(models.User.email == user_update.email).first()
+        if existing and existing.id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered",
+            )
+        current_user.email = user_update.email
+
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
 @router.post("/login", response_model=schemas.Token)
 def login_user(
     form_data: OAuth2PasswordRequestForm = Depends(),
