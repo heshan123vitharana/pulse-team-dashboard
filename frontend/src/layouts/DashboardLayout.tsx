@@ -11,6 +11,7 @@ import {
   User,
   Plus,
   Users,
+  Search,
 } from "lucide-react";
 
 import authService from "@/api/auth";
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 
 // ─── DashboardLayout Component ───────────────────────────────────────────────
 
@@ -137,13 +139,27 @@ export default function DashboardLayout(): JSX.Element {
             </SheetContent>
           </Sheet>
 
-          <div className="w-full flex-1" />
+          <div className="w-full flex-1">
+            <form>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search"
+                  className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+                />
+              </div>
+            </form>
+          </div>
 
-          {role && (
-            <span className="hidden md:inline-flex rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-800">
-              {role}
-            </span>
-          )}
+          <div className="hidden md:flex items-center gap-2 mr-2">
+             <span className="rounded-md bg-[#b8ebd6] px-2.5 py-1 text-xs font-semibold text-[#1c6f4b]">
+                Dhanushka Engineering Co. (Pvt) Ltd - Kalutara
+             </span>
+             <span className="rounded-md bg-[#f4e0c4] px-2.5 py-1 text-xs font-semibold text-[#865d36]">
+                dinesh@dlad.io
+             </span>
+          </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

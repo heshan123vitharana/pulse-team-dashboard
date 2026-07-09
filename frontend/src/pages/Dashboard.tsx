@@ -3,13 +3,12 @@ import { Link } from "react-router-dom";
 import {
   Activity,
   AlertCircle,
-  AlertTriangle,
   BarChart,
   CheckCircle2,
   Clock,
-  FileText,
   PieChart,
   Plus,
+  RefreshCw,
 } from "lucide-react";
 
 import apiClient from "@/api/client";
@@ -123,28 +122,22 @@ function ManagerDashboard(): JSX.Element {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="bg-primary text-primary-foreground border-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <RefreshCw className="h-4 w-4 text-primary-foreground/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.summary.total_reports}</div>
-            <p className="text-xs text-muted-foreground">
-              Submitted across all projects
-            </p>
+            <div className="text-3xl font-bold mb-1">{metrics.summary.total_reports}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-primary text-primary-foreground border-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Open Blockers</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <RefreshCw className="h-4 w-4 text-primary-foreground/70" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.summary.open_blockers}</div>
-            <p className="text-xs text-muted-foreground">
-              Requiring manager attention
-            </p>
+            <div className="text-3xl font-bold mb-1">{metrics.summary.open_blockers}</div>
           </CardContent>
         </Card>
       </div>
