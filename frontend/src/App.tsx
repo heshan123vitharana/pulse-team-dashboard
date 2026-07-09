@@ -11,6 +11,7 @@ import LoginPage from "@/pages/Login";
 import DashboardPage from "@/pages/Dashboard";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import ProjectsPage from "@/pages/Projects";
+import SubmitReportPage from "@/pages/SubmitReport";
 
 // ─── Protected Route ──────────────────────────────────────────────────────────
 
@@ -39,6 +40,7 @@ function ProtectedRoute(): JSX.Element {
  *  /login       → LoginPage     (public)
  *  /dashboard   → DashboardPage (protected — requires valid token)
  *  /projects    → ProjectsPage  (protected)
+ *  /submit-report → SubmitReportPage (protected)
  *  /            → redirect to /dashboard
  *  *            → redirect to /dashboard (catch-all)
  */
@@ -54,6 +56,7 @@ export default function App(): JSX.Element {
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/submit-report" element={<SubmitReportPage />} />
           </Route>
         </Route>
 
