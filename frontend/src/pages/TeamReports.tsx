@@ -1,7 +1,7 @@
 import { type JSX, useState, useEffect } from "react";
 import { getAllReports, type WeeklyReportResponse, type ReportFilters } from "@/api/reports";
 import { getProjects, type Project } from "@/api/projects";
-import authService, { type User } from "@/api/auth";
+import authService, { type User as AuthUser } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { Calendar, User, Briefcase, AlertCircle, CheckCircle } from "lucide-reac
 export default function TeamReportsPage(): JSX.Element {
   const [reports, setReports] = useState<WeeklyReportResponse[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<AuthUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
