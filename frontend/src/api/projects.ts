@@ -2,14 +2,14 @@ import apiClient from "./client";
 
 export interface Project {
   id: number;
-  name: string;
+  project_name: string;
   description: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface ProjectCreate {
-  name: string;
+  project_name: string;
   description: string;
 }
 

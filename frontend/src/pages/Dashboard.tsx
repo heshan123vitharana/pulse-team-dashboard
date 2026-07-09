@@ -55,7 +55,7 @@ interface WeeklyReport {
   blockers: string;
   hours_worked: number | null;
   notes: string | null;
-  user_id: int;
+  user_id: number;
   submission_status: string;
   submitted_at: string;
   project?: Project;

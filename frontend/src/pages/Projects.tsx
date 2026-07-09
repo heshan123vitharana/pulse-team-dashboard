@@ -58,7 +58,7 @@ export default function ProjectsPage(): JSX.Element {
     try {
       setIsSubmitting(true);
       setFormError(null);
-      await createProject({ name, description });
+      await createProject({ project_name: name, description });
       
       // Reset form & close dialog
       setName("");
@@ -196,7 +196,7 @@ export default function ProjectsPage(): JSX.Element {
           {projects.map((project) => (
             <Card key={project.id} className="flex flex-col transition-all hover:shadow-md">
               <CardHeader>
-                <CardTitle className="text-xl">{project.name}</CardTitle>
+                <CardTitle className="text-xl">{project.project_name}</CardTitle>
                 {project.createdAt && (
                   <CardDescription>
                     Created on {new Date(project.createdAt).toLocaleDateString(undefined, {
