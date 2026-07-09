@@ -154,8 +154,7 @@ export default function SubmitReportPage(): JSX.Element {
                 </option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id} className="text-foreground">
-                    {/* Fallback to project_name in case backend returns it */}
-                    {p.name || (p as any).project_name}
+                    {p.project_name}
                   </option>
                 ))}
               </select>

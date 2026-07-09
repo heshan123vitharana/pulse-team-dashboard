@@ -132,7 +132,7 @@ export default function TeamReportsPage(): JSX.Element {
               <option value="">All Projects</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id} className="text-foreground">
-                  {p.name || (p as any).project_name}
+                  {p.project_name}
                 </option>
               ))}
             </select>
