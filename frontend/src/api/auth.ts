@@ -95,6 +95,22 @@ const authService = {
     return localStorage.getItem(TOKEN_STORAGE_KEY);
   },
 
+  /** Decodes the JWT token and returns the user's email (stored in 'sub'). */
+  getUserEmail(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const payload = token.split(".")[1];
+      // Convert Base64Url to Base64
+      const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+      const decoded = JSON.parse(window.atob(base64));
+      return decoded.sub || null;
+    } catch (e) {
+      console.error("Failed to decode JWT token:", e);
+      return null;
+    }
+  },
+
   /** Fetches all users (Manager only). */
   async getUsers(): Promise<User[]> {
     const response = await apiClient.get<User[]>("/api/v1/auth/users");

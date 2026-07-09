@@ -36,7 +36,8 @@ export default function DashboardLayout(): JSX.Element {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const role = authService.getRole();
-  const userInitials = "U"; // Default initials, would come from actual user profile in a real app
+  const userEmail = authService.getUserEmail();
+  const userInitials = userEmail ? userEmail.charAt(0).toUpperCase() : "U";
   
   const isManager = role?.toLowerCase() === "manager";
 
@@ -157,7 +158,7 @@ export default function DashboardLayout(): JSX.Element {
                 Dhanushka Engineering Co. (Pvt) Ltd - Kalutara
              </span>
              <span className="rounded-md bg-[#f4e0c4] px-2.5 py-1 text-xs font-semibold text-[#865d36]">
-                dinesh@dlad.io
+                {userEmail || "user@example.com"}
              </span>
           </div>
 
