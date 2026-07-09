@@ -10,6 +10,7 @@ import {
   Settings,
   User,
   Plus,
+  Users,
 } from "lucide-react";
 
 import authService from "@/api/auth";
@@ -41,7 +42,10 @@ export default function DashboardLayout(): JSX.Element {
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     ...(isManager
-      ? [{ name: "Team Reports", href: "/team-reports", icon: BarChart3 }]
+      ? [
+          { name: "Team Reports", href: "/team-reports", icon: BarChart3 },
+          { name: "Users", href: "/users", icon: Users }
+        ]
       : [
           { name: "Submit Report", href: "/submit-report", icon: Plus },
           { name: "My Reports", href: "/my-reports", icon: BarChart3 }

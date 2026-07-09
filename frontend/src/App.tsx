@@ -16,6 +16,7 @@ import TeamReportsPage from "@/pages/TeamReports";
 import MyReportsPage from "@/pages/MyReports";
 import ProfilePage from "@/pages/Profile";
 import SettingsPage from "@/pages/Settings";
+import UsersPage from "@/pages/Users";
 
 // ─── Protected Route ──────────────────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ export default function App(): JSX.Element {
             {/* Manager-only routes */}
             <Route element={<ManagerRoute />}>
               <Route path="/team-reports" element={<TeamReportsPage />} />
+              <Route path="/users" element={<UsersPage />} />
             </Route>
           </Route>
         </Route>

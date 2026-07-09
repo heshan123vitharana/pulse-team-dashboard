@@ -24,7 +24,12 @@ def get_all_users(
 
 
 @router.post("/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
-def register_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
+def register_user(
+    user_in: schemas.UserCreate, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth_utils.check_manager_role),
+):
+    """Register a new user. Manager only."""
     existing_user = db.query(models.User).filter(models.User.email == user_in.email).first()
     if existing_user:
         raise HTTPException(

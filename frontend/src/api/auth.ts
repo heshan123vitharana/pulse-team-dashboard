@@ -15,6 +15,13 @@ export interface User {
   role_id: number;
 }
 
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  role_id: number;
+}
+
 /**
  * Shape of the JSON response returned by POST /api/v1/auth/login.
  * Mirrors the backend's `Token` schema.
@@ -91,6 +98,12 @@ const authService = {
   /** Fetches all users (Manager only). */
   async getUsers(): Promise<User[]> {
     const response = await apiClient.get<User[]>("/api/v1/auth/users");
+    return response.data;
+  },
+
+  /** Registers a new user (Manager only). */
+  async register(data: RegisterData): Promise<User> {
+    const response = await apiClient.post<User>("/api/v1/auth/register", data);
     return response.data;
   },
 };
