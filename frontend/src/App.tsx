@@ -12,6 +12,7 @@ import DashboardPage from "@/pages/Dashboard";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import ProjectsPage from "@/pages/Projects";
 import SubmitReportPage from "@/pages/SubmitReport";
+import TeamReportsPage from "@/pages/TeamReports";
 
 // ─── Protected Route ──────────────────────────────────────────────────────────
 
@@ -31,6 +32,22 @@ function ProtectedRoute(): JSX.Element {
   return <Outlet />;
 }
 
+// ─── Manager Route ────────────────────────────────────────────────────────────
+
+/**
+ * Guards child routes so only Managers can access them.
+ * Redirects to dashboard if the user does not have the 'manager' role.
+ */
+function ManagerRoute(): JSX.Element {
+  const role = authService.getRole();
+  
+  if (role !== "manager") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <Outlet />;
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 /**
@@ -41,6 +58,7 @@ function ProtectedRoute(): JSX.Element {
  *  /dashboard   → DashboardPage (protected — requires valid token)
  *  /projects    → ProjectsPage  (protected)
  *  /submit-report → SubmitReportPage (protected)
+ *  /team-reports → TeamReportsPage (protected, manager only)
  *  /            → redirect to /dashboard
  *  *            → redirect to /dashboard (catch-all)
  */
@@ -57,6 +75,11 @@ export default function App(): JSX.Element {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/submit-report" element={<SubmitReportPage />} />
+            
+            {/* Manager-only routes */}
+            <Route element={<ManagerRoute />}>
+              <Route path="/team-reports" element={<TeamReportsPage />} />
+            </Route>
           </Route>
         </Route>
 

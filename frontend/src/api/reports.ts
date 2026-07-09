@@ -16,6 +16,22 @@ export interface WeeklyReportResponse extends WeeklyReportCreate {
   user_id: number;
   submission_status: string;
   submitted_at: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    role_id: number;
+  };
+  project?: {
+    id: number;
+    project_name: string;
+  };
+}
+
+export interface ReportFilters {
+  project_id?: number;
+  start_date?: string;
+  end_date?: string;
 }
 
 /**
@@ -24,5 +40,19 @@ export interface WeeklyReportResponse extends WeeklyReportCreate {
  */
 export const submitReport = async (data: WeeklyReportCreate): Promise<WeeklyReportResponse> => {
   const response = await apiClient.post<WeeklyReportResponse>("/api/v1/reports/", data);
+  return response.data;
+};
+
+/**
+ * Fetches all reports with optional filters. (Manager only)
+ * @param filters Optional filters for project and dates.
+ */
+export const getAllReports = async (filters?: ReportFilters): Promise<WeeklyReportResponse[]> => {
+  const params = new URLSearchParams();
+  if (filters?.project_id) params.append("project_id", filters.project_id.toString());
+  if (filters?.start_date) params.append("start_date", filters.start_date);
+  if (filters?.end_date) params.append("end_date", filters.end_date);
+
+  const response = await apiClient.get<WeeklyReportResponse[]>("/api/v1/reports/", { params });
   return response.data;
 };
