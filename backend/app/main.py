@@ -6,6 +6,7 @@ from . import models
 from .routes import auth as auth_router
 from .routes import projects as projects_router
 from .routes import reports as reports_router
+from .routes import chat as chat_router
 from .config import settings
 
 # Auto-create all tables on startup
@@ -37,6 +38,7 @@ app.add_middleware(
 app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(projects_router.router, prefix="/api/v1/projects", tags=["Projects"])
 app.include_router(reports_router.router, prefix="/api/v1/reports", tags=["Reports"])
+app.include_router(chat_router.router, prefix="/api/v1/chat", tags=["Chat"])
 
 
 # ---------------------------------------------------------------------------

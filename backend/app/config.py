@@ -13,5 +13,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "SUPER_SECRET_KEY_FOR_SISENCO_ASSIGNMENT_1234567890")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 
+    # LLM Settings
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 
 settings = Settings()

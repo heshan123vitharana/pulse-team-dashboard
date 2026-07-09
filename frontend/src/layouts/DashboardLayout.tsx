@@ -27,6 +27,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { ChatWidget } from "@/components/chat/ChatWidget";
 
 // ─── DashboardLayout Component ───────────────────────────────────────────────
 
@@ -199,6 +200,9 @@ export default function DashboardLayout(): JSX.Element {
           <Outlet />
         </main>
       </div>
+      
+      {/* ─── AI Chat Widget ───────────────────────────────────────────────── */}
+      <ChatWidget />
     </div>
   );
 }
