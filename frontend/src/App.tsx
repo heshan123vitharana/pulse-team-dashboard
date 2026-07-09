@@ -10,6 +10,7 @@ import authService from "@/api/auth";
 import LoginPage from "@/pages/Login";
 import DashboardPage from "@/pages/Dashboard";
 import DashboardLayout from "@/layouts/DashboardLayout";
+import ProjectsPage from "@/pages/Projects";
 
 // ─── Protected Route ──────────────────────────────────────────────────────────
 
@@ -37,6 +38,7 @@ function ProtectedRoute(): JSX.Element {
  * Route map:
  *  /login       → LoginPage     (public)
  *  /dashboard   → DashboardPage (protected — requires valid token)
+ *  /projects    → ProjectsPage  (protected)
  *  /            → redirect to /dashboard
  *  *            → redirect to /dashboard (catch-all)
  */
@@ -51,6 +53,7 @@ export default function App(): JSX.Element {
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
           </Route>
         </Route>
 
