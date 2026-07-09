@@ -7,6 +7,7 @@ from .routes import auth as auth_router
 from .routes import projects as projects_router
 from .routes import reports as reports_router
 from .routes import chat as chat_router
+from .routes import notifications as notifications_router
 from .config import settings
 
 # Auto-create all tables on startup
@@ -39,6 +40,7 @@ app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["Authenticat
 app.include_router(projects_router.router, prefix="/api/v1/projects", tags=["Projects"])
 app.include_router(reports_router.router, prefix="/api/v1/reports", tags=["Reports"])
 app.include_router(chat_router.router, prefix="/api/v1/chat", tags=["Chat"])
+app.include_router(notifications_router.router, prefix="/api/v1/notifications", tags=["Notifications"])
 
 
 # ---------------------------------------------------------------------------

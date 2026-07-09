@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, selectinload
 from ..database import get_db
 from .. import models, schemas
 from ..auth import get_current_user, check_manager_role
+from ..ws import manager
 
 router = APIRouter()
 
@@ -84,7 +85,7 @@ def delete_project(
     db.commit()
 
 @router.post("/{project_id}/assign/{user_id}", status_code=status.HTTP_200_OK)
-def assign_user(
+async def assign_user(
     project_id: int,
     user_id: int,
     db: Session = Depends(get_db),
@@ -100,11 +101,19 @@ def assign_user(
     if user not in project.users:
         project.users.append(user)
         db.commit()
+        
+        # Trigger WebSocket Notification
+        await manager.send_personal_message({
+            "type": "PROJECT_ASSIGNED",
+            "message": f"You were assigned to project: {project.project_name}",
+            "project_id": project.id,
+            "project_name": project.project_name
+        }, user_id)
     
     return {"message": "User assigned to project"}
 
 @router.delete("/{project_id}/assign/{user_id}", status_code=status.HTTP_200_OK)
-def unassign_user(
+async def unassign_user(
     project_id: int,
     user_id: int,
     db: Session = Depends(get_db),
@@ -120,5 +129,13 @@ def unassign_user(
     if user in project.users:
         project.users.remove(user)
         db.commit()
+
+        # Trigger WebSocket Notification
+        await manager.send_personal_message({
+            "type": "PROJECT_UNASSIGNED",
+            "message": f"You were removed from project: {project.project_name}",
+            "project_id": project.id,
+            "project_name": project.project_name
+        }, user_id)
     
     return {"message": "User removed from project"}

@@ -1,4 +1,4 @@
-import { type JSX, useState } from "react";
+import { type JSX, useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Activity,
@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 
 import authService from "@/api/auth";
+import { TOKEN_STORAGE_KEY } from "@/api/client";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -41,6 +43,38 @@ export default function DashboardLayout(): JSX.Element {
   const userInitials = userEmail ? userEmail.charAt(0).toUpperCase() : "U";
   
   const isManager = role?.toLowerCase() === "manager";
+
+  // WebSocket Connection
+  useEffect(() => {
+    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (!token) return;
+
+    // Build ws:// or wss:// URL based on current origin, but hardcoded to backend port for dev
+    // If the frontend is on port 5173, backend is on 8000
+    const wsUrl = `ws://localhost:8000/api/v1/notifications/ws?token=${token}`;
+    const ws = new WebSocket(wsUrl);
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "PROJECT_ASSIGNED") {
+          toast.success(data.message);
+        } else if (data.type === "PROJECT_UNASSIGNED") {
+          toast.info(data.message);
+        }
+      } catch (err) {
+        console.error("Failed to parse WS message", err);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   // Dynamically generate navigation items based on role
   const navItems = [
