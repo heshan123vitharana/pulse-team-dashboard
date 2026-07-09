@@ -109,7 +109,7 @@ export default function DashboardLayout(): JSX.Element {
       {/* ─── Main Content Wrapper ───────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col">
         {/* ─── Header ───────────────────────────────────────────────────────── */}
-        <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
+        <header className="flex h-14 items-center gap-4 border-b bg-background px-4 md:px-6 lg:h-[60px]">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button
@@ -164,7 +164,7 @@ export default function DashboardLayout(): JSX.Element {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="" alt="User" />
                   <AvatarFallback className="bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-200">

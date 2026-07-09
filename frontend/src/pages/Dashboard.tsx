@@ -8,7 +8,6 @@ import {
   Clock,
   PieChart,
   Plus,
-  RefreshCw,
 } from "lucide-react";
 
 import apiClient from "@/api/client";
@@ -357,7 +356,7 @@ export default function DashboardPage(): JSX.Element {
   const isManager = role?.toLowerCase() === "manager";
 
   return (
-    <div className="mx-auto max-w-5xl w-full">
+    <div className="w-full">
       {isManager ? <ManagerDashboard /> : <TeamMemberDashboard />}
     </div>
   );
