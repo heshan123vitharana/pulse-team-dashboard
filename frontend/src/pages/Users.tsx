@@ -2,7 +2,7 @@ import { type JSX, useState, useEffect } from "react";
 import { Plus, Users } from "lucide-react";
 import authService, { type User, type RegisterData } from "@/api/auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -229,7 +229,7 @@ export default function UsersPage(): JSX.Element {
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           user.role_id === 1 
                             ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                            : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+                            : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
                         }`}>
                           {user.role_id === 1 ? "Manager" : "Team Member"}
                         </span>
