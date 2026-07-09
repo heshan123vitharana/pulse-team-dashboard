@@ -37,6 +37,10 @@ class ProjectBase(BaseModel):
 class ProjectCreate(ProjectBase):
     pass
 
+class ProjectUpdate(BaseModel):
+    project_name: Optional[str] = None
+    description: Optional[str] = None
+
 class ProjectResponse(ProjectBase):
     id: int
 
@@ -57,6 +61,16 @@ class WeeklyReportBase(BaseModel):
 
 class WeeklyReportCreate(WeeklyReportBase):
     pass
+
+class WeeklyReportUpdate(BaseModel):
+    project_id: Optional[int] = None
+    week_start_date: Optional[date] = None
+    week_end_date: Optional[date] = None
+    tasks_completed: Optional[str] = None
+    tasks_planned: Optional[str] = None
+    blockers: Optional[str] = None
+    hours_worked: Optional[int] = None
+    notes: Optional[str] = None
 
 class WeeklyReportResponse(WeeklyReportBase):
     id: int

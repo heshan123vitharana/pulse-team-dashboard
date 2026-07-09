@@ -46,6 +46,27 @@ def get_project(
     return project
 
 
+@router.put("/{project_id}", response_model=schemas.ProjectResponse)
+def update_project(
+    project_id: int,
+    project_in: schemas.ProjectUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(check_manager_role),
+):
+    """Update a project. Manager only."""
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    
+    update_data = project_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(project, key, value)
+        
+    db.commit()
+    db.refresh(project)
+    return project
+
+
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_project(
     project_id: int,

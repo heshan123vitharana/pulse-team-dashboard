@@ -1,8 +1,8 @@
 import { type JSX, useState, useEffect } from "react";
-import { Plus } from "lucide-react";
-import { getProjects, createProject, type Project } from "@/api/projects";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import { getProjects, createProject, updateProject, deleteProject, type Project } from "@/api/projects";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,7 +23,10 @@ export default function ProjectsPage(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
 
   // Form State
   const [name, setName] = useState("");
@@ -75,14 +78,69 @@ export default function ProjectsPage(): JSX.Element {
     }
   };
 
+  const handleEditProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !editingProject) {
+      setFormError("Project name is required.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setFormError(null);
+      await updateProject(editingProject.id, { project_name: name, description });
+      
+      setName("");
+      setDescription("");
+      setIsEditDialogOpen(false);
+      setEditingProject(null);
+      
+      await fetchProjects();
+    } catch (err) {
+      console.error("Failed to update project:", err);
+      setFormError("Failed to update project.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteProject = async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this project?")) return;
+    try {
+      setLoading(true);
+      await deleteProject(id);
+      await fetchProjects();
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+      setError("Failed to delete project.");
+      setLoading(false);
+    }
+  };
+
+  const openEditDialog = (project: Project) => {
+    setEditingProject(project);
+    setName(project.project_name || "");
+    setDescription(project.description || "");
+    setIsEditDialogOpen(true);
+  };
+
   // Function to handle modal closing/resetting
   const onOpenChange = (open: boolean) => {
     setIsDialogOpen(open);
     if (!open) {
-      // Clear form when dialog closes
       setName("");
       setDescription("");
       setFormError(null);
+    }
+  };
+
+  const onEditOpenChange = (open: boolean) => {
+    setIsEditDialogOpen(open);
+    if (!open) {
+      setName("");
+      setDescription("");
+      setFormError(null);
+      setEditingProject(null);
     }
   };
 
@@ -156,6 +214,59 @@ export default function ProjectsPage(): JSX.Element {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={onEditOpenChange}>
+          <DialogContent className="sm:max-w-[425px]">
+            <form onSubmit={handleEditProject}>
+              <DialogHeader>
+                <DialogTitle>Edit Project</DialogTitle>
+                <DialogDescription>
+                  Modify the project details below.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                {formError && (
+                  <div className="text-sm font-medium text-destructive">
+                    {formError}
+                  </div>
+                )}
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-name">Project Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    disabled={isSubmitting}
+                    rows={4}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsEditDialogOpen(false)} 
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Saving..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Global Error State */}
@@ -212,6 +323,14 @@ export default function ProjectsPage(): JSX.Element {
                   {project.description || "No description provided."}
                 </p>
               </CardContent>
+              <CardFooter className="flex justify-end gap-2 pt-2 border-t mt-auto">
+                <Button variant="ghost" size="icon" onClick={() => openEditDialog(project)} className="text-muted-foreground hover:text-foreground">
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => handleDeleteProject(project.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </CardFooter>
             </Card>
           ))}
         </div>

@@ -1,7 +1,7 @@
 import { type JSX, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getProjects, type Project } from "@/api/projects";
-import { submitReport, type WeeklyReportCreate } from "@/api/reports";
+import { submitReport, updateReport, getReport, type WeeklyReportCreate } from "@/api/reports";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,10 +11,13 @@ import { cn } from "@/lib/utils";
 
 export default function SubmitReportPage(): JSX.Element {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = Boolean(id);
   
   // State for projects dropdown
   const [projects, setProjects] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
+  const [loadingReport, setLoadingReport] = useState(isEditMode);
   
   // Form State
   const [formData, setFormData] = useState<Partial<WeeklyReportCreate>>({
@@ -23,12 +26,35 @@ export default function SubmitReportPage(): JSX.Element {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch projects on mount
+  // Fetch projects and (if editing) the report
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchInitialData = async () => {
       try {
+        setLoadingProjects(true);
         const data = await getProjects();
         setProjects(data);
+
+        if (isEditMode && id) {
+          try {
+            setLoadingReport(true);
+            const report = await getReport(Number(id));
+            setFormData({
+              project_id: report.project_id,
+              week_start_date: report.week_start_date,
+              week_end_date: report.week_end_date,
+              tasks_completed: report.tasks_completed,
+              tasks_planned: report.tasks_planned,
+              blockers: report.blockers,
+              hours_worked: report.hours_worked,
+              notes: report.notes,
+            });
+          } catch (reportErr) {
+            console.error("Failed to fetch report:", reportErr);
+            setError("Could not load the report you are trying to edit.");
+          } finally {
+            setLoadingReport(false);
+          }
+        }
       } catch (err) {
         console.error("Failed to fetch projects:", err);
         setError("Could not load projects for the dropdown. Please try refreshing.");
@@ -36,8 +62,9 @@ export default function SubmitReportPage(): JSX.Element {
         setLoadingProjects(false);
       }
     };
-    fetchProjects();
-  }, []);
+    
+    fetchInitialData();
+  }, [id, isEditMode]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -59,22 +86,38 @@ export default function SubmitReportPage(): JSX.Element {
     try {
       setIsSubmitting(true);
       setError(null);
-      await submitReport(formData as WeeklyReportCreate);
-      navigate("/dashboard");
+      if (isEditMode && id) {
+        await updateReport(Number(id), formData);
+        navigate("/my-reports");
+      } else {
+        await submitReport(formData as WeeklyReportCreate);
+        navigate("/dashboard");
+      }
     } catch (err) {
-      console.error("Failed to submit report:", err);
-      setError("Failed to submit your report. Please check your inputs and try again.");
+      console.error("Failed to save report:", err);
+      setError("Failed to save your report. Please check your inputs and try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (loadingReport) {
+    return (
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="h-8 w-64 bg-muted animate-pulse rounded-md"></div>
+        <div className="h-96 w-full bg-muted animate-pulse rounded-md"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Submit Weekly Report</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {isEditMode ? "Edit Weekly Report" : "Submit Weekly Report"}
+        </h1>
         <p className="text-muted-foreground mt-1">
-          Provide an update on your progress, plans, and any blockers.
+          {isEditMode ? "Update your report details below." : "Provide an update on your progress, plans, and any blockers."}
         </p>
       </div>
 
@@ -206,13 +249,13 @@ export default function SubmitReportPage(): JSX.Element {
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate(isEditMode ? "/my-reports" : "/dashboard")}
               disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Report"}
+              {isSubmitting ? "Saving..." : (isEditMode ? "Update Report" : "Submit Report")}
             </Button>
           </CardFooter>
         </form>

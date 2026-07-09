@@ -1,3 +1,4 @@
+from typing import List
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -11,6 +12,15 @@ from .. import auth as auth_utils
 
 # THIS IS THE ROUTER THAT main.py IS LOOKING FOR
 router = APIRouter()
+
+
+@router.get("/users", response_model=List[schemas.UserResponse])
+def get_all_users(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth_utils.check_manager_role),
+):
+    """Get all users. Manager only."""
+    return db.query(models.User).all()
 
 
 @router.post("/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)

@@ -9,6 +9,7 @@ import {
   Menu,
   Settings,
   User,
+  Plus,
 } from "lucide-react";
 
 import authService from "@/api/auth";
@@ -41,7 +42,10 @@ export default function DashboardLayout(): JSX.Element {
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     ...(isManager
       ? [{ name: "Team Reports", href: "/team-reports", icon: BarChart3 }]
-      : [{ name: "Submit Report", href: "/submit-report", icon: BarChart3 }]),
+      : [
+          { name: "Submit Report", href: "/submit-report", icon: Plus },
+          { name: "My Reports", href: "/my-reports", icon: BarChart3 }
+        ]),
     { name: "Projects", href: "/projects", icon: FolderKanban },
   ];
 

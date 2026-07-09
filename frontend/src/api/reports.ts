@@ -11,6 +11,8 @@ export interface WeeklyReportCreate {
   notes?: string | null;
 }
 
+export type WeeklyReportUpdate = Partial<WeeklyReportCreate>;
+
 export interface WeeklyReportResponse extends WeeklyReportCreate {
   id: number;
   user_id: number;
@@ -40,6 +42,37 @@ export interface ReportFilters {
  */
 export const submitReport = async (data: WeeklyReportCreate): Promise<WeeklyReportResponse> => {
   const response = await apiClient.post<WeeklyReportResponse>("/api/v1/reports/", data);
+  return response.data;
+};
+
+/**
+ * Updates an existing weekly report.
+ */
+export const updateReport = async (id: number, data: WeeklyReportUpdate): Promise<WeeklyReportResponse> => {
+  const response = await apiClient.put<WeeklyReportResponse>(`/api/v1/reports/${id}`, data);
+  return response.data;
+};
+
+/**
+ * Deletes a weekly report.
+ */
+export const deleteReport = async (id: number): Promise<void> => {
+  await apiClient.delete(`/api/v1/reports/${id}`);
+};
+
+/**
+ * Fetches a single report by ID.
+ */
+export const getReport = async (id: number): Promise<WeeklyReportResponse> => {
+  const response = await apiClient.get<WeeklyReportResponse>(`/api/v1/reports/${id}`);
+  return response.data;
+};
+
+/**
+ * Fetches all reports submitted by the logged-in user.
+ */
+export const getMyReports = async (): Promise<WeeklyReportResponse[]> => {
+  const response = await apiClient.get<WeeklyReportResponse[]>("/api/v1/reports/my-reports");
   return response.data;
 };
 

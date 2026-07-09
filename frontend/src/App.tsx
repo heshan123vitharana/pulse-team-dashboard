@@ -13,6 +13,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import ProjectsPage from "@/pages/Projects";
 import SubmitReportPage from "@/pages/SubmitReport";
 import TeamReportsPage from "@/pages/TeamReports";
+import MyReportsPage from "@/pages/MyReports";
 
 // ─── Protected Route ──────────────────────────────────────────────────────────
 
@@ -74,7 +75,9 @@ export default function App(): JSX.Element {
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/my-reports" element={<MyReportsPage />} />
             <Route path="/submit-report" element={<SubmitReportPage />} />
+            <Route path="/submit-report/:id" element={<SubmitReportPage />} />
             
             {/* Manager-only routes */}
             <Route element={<ManagerRoute />}>

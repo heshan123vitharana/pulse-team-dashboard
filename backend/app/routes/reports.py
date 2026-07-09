@@ -140,6 +140,40 @@ def get_report(
     return report
 
 
+@router.put("/{report_id}", response_model=schemas.WeeklyReportResponse)
+def update_report(
+    report_id: int,
+    report_in: schemas.WeeklyReportUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Update a report. Users can only update their own reports."""
+    report = db.query(models.WeeklyReport).filter(models.WeeklyReport.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
+        
+    if report.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied. You can only update your own reports.",
+        )
+        
+    update_data = report_in.model_dump(exclude_unset=True)
+    
+    # If project is updated, verify it exists
+    if "project_id" in update_data:
+        project = db.query(models.Project).filter(models.Project.id == update_data["project_id"]).first()
+        if not project:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Project not found")
+
+    for key, value in update_data.items():
+        setattr(report, key, value)
+        
+    db.commit()
+    db.refresh(report)
+    return report
+
+
 @router.delete("/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_report(
     report_id: int,

@@ -1,6 +1,7 @@
 import { type JSX, useState, useEffect } from "react";
 import { getAllReports, type WeeklyReportResponse, type ReportFilters } from "@/api/reports";
 import { getProjects, type Project } from "@/api/projects";
+import authService, { type User } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,26 +13,35 @@ import { Calendar, User, Briefcase, AlertCircle, CheckCircle } from "lucide-reac
 export default function TeamReportsPage(): JSX.Element {
   const [reports, setReports] = useState<WeeklyReportResponse[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingProjects, setLoadingProjects] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Filters State
-  const [filters, setFilters] = useState<ReportFilters>({
+  const [filters, setFilters] = useState<ReportFilters & { user_id?: number }>({
+    user_id: undefined,
     project_id: undefined,
     start_date: "",
     end_date: "",
   });
 
-  const fetchProjects = async () => {
+  const fetchProjectsAndUsers = async () => {
     try {
       setLoadingProjects(true);
-      const data = await getProjects();
-      setProjects(data);
+      setLoadingUsers(true);
+      const [projectsData, usersData] = await Promise.all([
+        getProjects(),
+        authService.getUsers()
+      ]);
+      setProjects(projectsData);
+      setUsers(usersData);
     } catch (err) {
-      console.error("Failed to load projects:", err);
+      console.error("Failed to load filter data:", err);
     } finally {
       setLoadingProjects(false);
+      setLoadingUsers(false);
     }
   };
 
@@ -50,7 +60,7 @@ export default function TeamReportsPage(): JSX.Element {
   };
 
   useEffect(() => {
-    fetchProjects();
+    fetchProjectsAndUsers();
     fetchReports();
   }, []);
 
@@ -58,16 +68,16 @@ export default function TeamReportsPage(): JSX.Element {
     const { name, value } = e.target;
     setFilters((prev) => ({
       ...prev,
-      [name]: name === "project_id" ? (value ? Number(value) : undefined) : value,
+      [name]: (name === "project_id" || name === "user_id") ? (value ? Number(value) : undefined) : value,
     }));
   };
 
   const applyFilters = () => {
-    fetchReports(filters);
+    fetchReports(filters as ReportFilters);
   };
 
   const clearFilters = () => {
-    const emptyFilters = { project_id: undefined, start_date: "", end_date: "" };
+    const emptyFilters = { user_id: undefined, project_id: undefined, start_date: "", end_date: "" };
     setFilters(emptyFilters);
     fetchReports(emptyFilters);
   };
@@ -83,7 +93,29 @@ export default function TeamReportsPage(): JSX.Element {
 
       {/* Filters Section */}
       <Card className="bg-muted/10 border-dashed">
-        <CardContent className="p-4 sm:p-6 grid gap-4 md:grid-cols-4 items-end">
+        <CardContent className="p-4 sm:p-6 grid gap-4 md:grid-cols-5 items-end">
+          <div className="grid gap-2">
+            <Label htmlFor="user_id">Team Member</Label>
+            <select
+              id="user_id"
+              name="user_id"
+              value={filters.user_id || ""}
+              onChange={handleFilterChange}
+              disabled={loadingUsers}
+              className={cn(
+                "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                !filters.user_id && "text-muted-foreground"
+              )}
+            >
+              <option value="">All Members</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id} className="text-foreground">
+                  {u.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="grid gap-2">
             <Label htmlFor="project_id">Project</Label>
             <select

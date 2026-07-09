@@ -8,6 +8,13 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role_id: number;
+}
+
 /**
  * Shape of the JSON response returned by POST /api/v1/auth/login.
  * Mirrors the backend's `Token` schema.
@@ -79,6 +86,12 @@ const authService = {
   /** Returns the raw JWT string, or `null` if not authenticated. */
   getToken(): string | null {
     return localStorage.getItem(TOKEN_STORAGE_KEY);
+  },
+
+  /** Fetches all users (Manager only). */
+  async getUsers(): Promise<User[]> {
+    const response = await apiClient.get<User[]>("/api/v1/auth/users");
+    return response.data;
   },
 };
 
