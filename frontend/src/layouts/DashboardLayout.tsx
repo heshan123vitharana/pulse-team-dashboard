@@ -155,7 +155,7 @@ export default function DashboardLayout(): JSX.Element {
 
           <div className="hidden md:flex items-center gap-2 mr-2">
              <span className="rounded-md bg-[#b8ebd6] px-2.5 py-1 text-xs font-semibold text-[#1c6f4b]">
-                Dhanushka Engineering Co. (Pvt) Ltd - Kalutara
+                Team 1
              </span>
              <span className="rounded-md bg-[#f4e0c4] px-2.5 py-1 text-xs font-semibold text-[#865d36]">
                 {userEmail || "user@example.com"}
