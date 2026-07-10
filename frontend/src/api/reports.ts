@@ -31,6 +31,7 @@ export interface WeeklyReportResponse extends WeeklyReportCreate {
 }
 
 export interface ReportFilters {
+  user_id?: number;
   project_id?: number;
   start_date?: string;
   end_date?: string;
@@ -82,6 +83,7 @@ export const getMyReports = async (): Promise<WeeklyReportResponse[]> => {
  */
 export const getAllReports = async (filters?: ReportFilters): Promise<WeeklyReportResponse[]> => {
   const params = new URLSearchParams();
+  if (filters?.user_id) params.append("user_id", filters.user_id.toString());
   if (filters?.project_id) params.append("project_id", filters.project_id.toString());
   if (filters?.start_date) params.append("start_date", filters.start_date);
   if (filters?.end_date) params.append("end_date", filters.end_date);

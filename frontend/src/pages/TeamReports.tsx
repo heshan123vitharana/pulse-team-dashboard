@@ -245,12 +245,12 @@ export default function TeamReportsPage(): JSX.Element {
                   <td className="p-4 align-middle hidden md:table-cell max-w-[300px]">
                     <div className="truncate text-muted-foreground" title={report.tasks_completed}>
                       <span className="text-foreground font-medium">✅ </span>
-                      {report.tasks_completed}
+                      {report.tasks_completed.length > 6 ? report.tasks_completed.substring(0, 6) + "..." : report.tasks_completed}
                     </div>
                     {report.blockers && report.blockers.toLowerCase() !== "none" && (
                       <div className="truncate text-muted-foreground mt-1" title={report.blockers}>
                         <span className="text-destructive font-medium">⚠️ </span>
-                        {report.blockers}
+                        {report.blockers.length > 6 ? report.blockers.substring(0, 6) + "..." : report.blockers}
                       </div>
                     )}
                   </td>

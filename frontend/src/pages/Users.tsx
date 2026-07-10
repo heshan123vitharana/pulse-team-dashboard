@@ -216,7 +216,7 @@ export default function UsersPage(): JSX.Element {
                     <th className="px-4 py-3 rounded-tl-md">ID</th>
                     <th className="px-4 py-3">Name</th>
                     <th className="px-4 py-3">Email</th>
-                    <th className="px-4 py-3 rounded-tr-md">Role</th>
+                    <th className="px-4 py-3 rounded-tr-md text-right">Role</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -225,7 +225,7 @@ export default function UsersPage(): JSX.Element {
                       <td className="px-4 py-3 font-medium text-muted-foreground">#{user.id}</td>
                       <td className="px-4 py-3 font-semibold">{user.name}</td>
                       <td className="px-4 py-3">{user.email}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-right">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           user.role_id === 1 
                             ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"

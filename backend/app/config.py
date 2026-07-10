@@ -2,6 +2,15 @@ import os
 # pyrefly: ignore [missing-import]
 from pydantic_settings import BaseSettings
 
+# Load .env file manually if python-dotenv is not installed
+env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+if os.path.exists(env_path):
+    with open(env_path) as f:
+        for line in f:
+            if '=' in line and not line.strip().startswith('#'):
+                key, val = line.strip().split('=', 1)
+                os.environ[key.strip()] = val.strip()
+
 class Settings(BaseSettings):
     # App Settings
     PROJECT_NAME: str = "Pulse Team Dashboard"
