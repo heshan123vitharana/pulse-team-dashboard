@@ -72,7 +72,9 @@ export default function DashboardLayout(): JSX.Element {
     };
 
     return () => {
-      ws.close();
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close();
+      }
     };
   }, []);
 

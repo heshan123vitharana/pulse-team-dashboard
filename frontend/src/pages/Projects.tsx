@@ -3,7 +3,6 @@ import { Plus, Pencil, Trash2, Users } from "lucide-react";
 import { getProjects, createProject, updateProject, deleteProject, assignUserToProject, unassignUserFromProject, type Project } from "@/api/projects";
 import authService, { type User } from "@/api/auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,6 +18,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 export default function ProjectsPage(): JSX.Element {
+  const isManager = authService.getRole()?.toLowerCase() === "manager";
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -195,7 +196,7 @@ export default function ProjectsPage(): JSX.Element {
 
   return (
     <div className="space-y-6">
-      {/* Header Section */}
+      {/* ── Header ────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
@@ -204,65 +205,61 @@ export default function ProjectsPage(): JSX.Element {
           </p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={onOpenChange}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Project
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <form onSubmit={handleCreateProject}>
-              <DialogHeader>
-                <DialogTitle>Create Project</DialogTitle>
-                <DialogDescription>
-                  Add a new project to your workspace. Click save when you're done.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                {formError && (
-                  <div className="text-sm font-medium text-destructive">
-                    {formError}
+        {/* Only managers can create projects */}
+        {isManager && (
+          <Dialog open={isDialogOpen} onOpenChange={onOpenChange}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                New Project
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <form onSubmit={handleCreateProject}>
+                <DialogHeader>
+                  <DialogTitle>Create Project</DialogTitle>
+                  <DialogDescription>
+                    Add a new project to your workspace. Click save when you're done.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  {formError && (
+                    <div className="text-sm font-medium text-destructive">{formError}</div>
+                  )}
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Project Name</Label>
+                    <Input
+                      id="name"
+                      placeholder="e.g., Q3 Marketing Campaign"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      disabled={isSubmitting}
+                    />
                   </div>
-                )}
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Project Name</Label>
-                  <Input
-                    id="name"
-                    placeholder="e.g., Q3 Marketing Campaign"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    disabled={isSubmitting}
-                  />
+                  <div className="grid gap-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Briefly describe the project goals..."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      disabled={isSubmitting}
+                      rows={4}
+                    />
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Briefly describe the project goals..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    disabled={isSubmitting}
-                    rows={4}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsDialogOpen(false)} 
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Save Project"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSubmitting}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Creating..." : "Save Project"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={onEditOpenChange}>
@@ -270,15 +267,11 @@ export default function ProjectsPage(): JSX.Element {
             <form onSubmit={handleEditProject}>
               <DialogHeader>
                 <DialogTitle>Edit Project</DialogTitle>
-                <DialogDescription>
-                  Modify the project details below.
-                </DialogDescription>
+                <DialogDescription>Modify the project details below.</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 {formError && (
-                  <div className="text-sm font-medium text-destructive">
-                    {formError}
-                  </div>
+                  <div className="text-sm font-medium text-destructive">{formError}</div>
                 )}
                 <div className="grid gap-2">
                   <Label htmlFor="edit-name">Project Name</Label>
@@ -301,12 +294,7 @@ export default function ProjectsPage(): JSX.Element {
                 </div>
               </div>
               <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsEditDialogOpen(false)} 
-                  disabled={isSubmitting}
-                >
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={isSubmitting}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
@@ -321,114 +309,173 @@ export default function ProjectsPage(): JSX.Element {
         <Dialog open={isManageTeamDialogOpen} onOpenChange={setIsManageTeamDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Manage Team for {managingProject?.project_name}</DialogTitle>
-              <DialogDescription>
-                Assign or remove team members from this project.
-              </DialogDescription>
+              <DialogTitle>Manage Team — {managingProject?.project_name}</DialogTitle>
+              <DialogDescription>Assign or remove team members from this project.</DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-3 py-4 max-h-[300px] overflow-y-auto pr-2">
               {allUsers.length === 0 && <p className="text-sm text-muted-foreground">No users found.</p>}
               {allUsers.map(user => {
-                // Find the fresh project object from state to check assignments
                 const freshProject = projects.find(p => p.id === managingProject?.id);
                 const isAssigned = freshProject?.users?.some(u => u.id === user.id) || false;
-                
                 return (
                   <div key={user.id} className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border">
                     <div>
                       <p className="font-medium text-sm">{user.name}</p>
                       <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
-                    <Button 
-                      variant={isAssigned ? "destructive" : "secondary"} 
+                    <Button
+                      variant={isAssigned ? "destructive" : "secondary"}
                       size="sm"
                       onClick={() => handleToggleAssignment(user.id)}
                     >
                       {isAssigned ? "Remove" : "Assign"}
                     </Button>
                   </div>
-                )
+                );
               })}
             </div>
             <DialogFooter>
-              <Button type="button" onClick={() => setIsManageTeamDialogOpen(false)}>
-                Done
-              </Button>
+              <Button type="button" onClick={() => setIsManageTeamDialogOpen(false)}>Done</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Global Error State */}
+      {/* ── Error ─────────────────────────────────────────────── */}
       {error && (
         <div className="p-4 rounded-md border border-destructive/50 bg-destructive/10 text-destructive font-medium">
           {error}
         </div>
       )}
 
-      {/* Project Grid / Empty State */}
-      {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="flex flex-col justify-between">
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-10 w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : projects.length === 0 && !error ? (
-        <div className="flex flex-col items-center justify-center p-12 text-center border rounded-lg border-dashed bg-muted/30">
-          <h3 className="text-xl font-semibold mb-2">No projects found</h3>
-          <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-            Get started by creating your first project. All your tasks will be organized under projects.
-          </p>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Project
-          </Button>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <Card key={project.id} className="flex flex-col transition-all hover:shadow-md">
-              <CardHeader>
-                <CardTitle className="text-xl">{project.project_name}</CardTitle>
-                {project.createdAt && (
-                  <CardDescription>
-                    Created on {new Date(project.createdAt).toLocaleDateString(undefined, {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent className="flex-1">
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {project.description || "No description provided."}
-                </p>
-              </CardContent>
-              <CardFooter className="flex justify-end gap-2 pt-2 border-t mt-auto">
-                <Button variant="outline" size="sm" onClick={() => openManageTeamDialog(project)} className="mr-auto">
-                  <Users className="mr-2 h-4 w-4" />
-                  Team ({project.users?.length || 0})
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => openEditDialog(project)} className="text-muted-foreground hover:text-foreground">
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDeleteProject(project.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      )}
+      {/* ── Table ─────────────────────────────────────────────── */}
+      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/50">
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground w-8">#</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Project Name</th>
+              <th className="px-4 py-3 text-left font-semibold text-muted-foreground hidden md:table-cell">Description</th>
+              <th className="px-4 py-3 text-center font-semibold text-muted-foreground w-28">Members</th>
+              {isManager && (
+                <th className="px-4 py-3 text-right font-semibold text-muted-foreground w-36">Actions</th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              /* Skeleton rows */
+              Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i} className="border-b last:border-0">
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-4" /></td>
+                  <td className="px-4 py-3"><Skeleton className="h-4 w-40" /></td>
+                  <td className="px-4 py-3 hidden md:table-cell"><Skeleton className="h-4 w-64" /></td>
+                  <td className="px-4 py-3 text-center"><Skeleton className="h-4 w-8 mx-auto" /></td>
+                  {isManager && <td className="px-4 py-3"><Skeleton className="h-8 w-24 ml-auto" /></td>}
+                </tr>
+              ))
+            ) : projects.length === 0 ? (
+              <tr>
+                <td colSpan={isManager ? 5 : 4} className="px-4 py-16 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="rounded-full bg-muted p-3">
+                      <Users className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <p className="font-medium">No projects found</p>
+                    <p className="text-xs text-muted-foreground max-w-xs">
+                      {isManager
+                        ? "Create your first project to get started."
+                        : "You haven't been assigned to any projects yet."}
+                    </p>
+                    {isManager && (
+                      <Button size="sm" onClick={() => setIsDialogOpen(true)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Project
+                      </Button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              projects.map((project, index) => (
+                <tr
+                  key={project.id}
+                  className="border-b last:border-0 hover:bg-muted/30 transition-colors group"
+                >
+                  {/* Row number */}
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
+                    {index + 1}
+                  </td>
+
+                  {/* Project name */}
+                  <td className="px-4 py-3">
+                    <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {project.project_name}
+                    </span>
+                  </td>
+
+                  {/* Description */}
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    <span className="text-muted-foreground line-clamp-1 max-w-sm">
+                      {project.description || (
+                        <span className="italic opacity-50">No description</span>
+                      )}
+                    </span>
+                  </td>
+
+                  {/* Member count badge */}
+                  <td className="px-4 py-3 text-center">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                      <Users className="h-3 w-3" />
+                      {project.users?.length ?? 0}
+                    </span>
+                  </td>
+
+                  {/* Manager actions */}
+                  {isManager && (
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                          onClick={() => openManageTeamDialog(project)}
+                        >
+                          <Users className="h-3.5 w-3.5" />
+                          Team
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          onClick={() => openEditDialog(project)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteProject(project.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        {/* Footer: row count */}
+        {!loading && projects.length > 0 && (
+          <div className="border-t bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
+            Showing {projects.length} project{projects.length !== 1 ? "s" : ""}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

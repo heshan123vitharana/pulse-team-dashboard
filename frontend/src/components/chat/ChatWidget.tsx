@@ -50,29 +50,37 @@ export function ChatWidget() {
       role: "user",
       content: input.trim()
     };
-    
-    setMessages((prev) => [...prev, userMessage]);
+
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
     setIsLoading(true);
 
     try {
+      // Build history: all prior messages except the welcome greeting
+      const history = updatedMessages
+        .filter((m) => m.id !== "welcome")
+        .slice(0, -1) // exclude the message we just added (sent as `message`)
+        .map((m) => ({ role: m.role === "ai" ? "assistant" : "user", content: m.content }));
+
       const response = await apiClient.post("/api/v1/chat/message", {
-        message: userMessage.content
+        message: userMessage.content,
+        history,
       });
-      
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "ai",
         content: response.data.response
       };
-      
+
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err: any) {
       console.error("Chat error:", err);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "ai",
-        content: err.response?.data?.detail || "Sorry, I encountered an error communicating with the server. Please make sure the AI API key is configured."
+        content: err.response?.data?.detail || "Sorry, I encountered an error. Please make sure the AI API key is configured."
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {

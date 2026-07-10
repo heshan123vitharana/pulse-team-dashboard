@@ -228,7 +228,7 @@ export default function SubmitReportPage(): JSX.Element {
               />
             </div>
 
-            <div className="grid gap-2 mb-6">
+            <div className="grid gap-2">
               <Label htmlFor="hours_worked">Hours Worked (Optional)</Label>
               <Input
                 id="hours_worked"
@@ -240,6 +240,19 @@ export default function SubmitReportPage(): JSX.Element {
                 value={formData.hours_worked || ""}
                 onChange={handleChange}
                 disabled={isSubmitting}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Notes / Links (Optional)</Label>
+              <Textarea
+                id="notes"
+                name="notes"
+                placeholder="Any additional context, links to PRs, docs, or references…"
+                value={formData.notes || ""}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                rows={2}
               />
             </div>
           </CardContent>

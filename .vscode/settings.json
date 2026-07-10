@@ -1,0 +1,20 @@
+{
+  // ─── Pyrefly (Python type checker) ─────────────────────────────────────────
+  // Only report diagnostics for files that are currently open in the editor.
+  // This stops Pyrefly's internal virtual in-memory files from flooding the
+  // Problems panel with false positives (c:\__pyrefly_virtual__\inmemory\*.py).
+  "pyrefly.diagnosticMode": "openFilesOnly",
+
+  // ─── Python ────────────────────────────────────────────────────────────────
+  // Point the Python extension at the backend venv so IntelliSense matches
+  // what Pyrefly and the server actually use.
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/Scripts/python.exe",
+
+  // ─── Editor ────────────────────────────────────────────────────────────────
+  "editor.formatOnSave": true,
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pycache__": true,
+    "**/*.pyc": true
+  }
+}

@@ -73,8 +73,8 @@ class WeeklyReport(Base):
     blockers: Mapped[str] = mapped_column(Text, nullable=False)
     hours_worked: Mapped[int] = mapped_column(Integer, nullable=True)
     notes: Mapped[str] = mapped_column(Text, nullable=True)
-    submission_status: Mapped[str] = mapped_column(String(50), server_default="submitted")
-    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    submission_status: Mapped[str] = mapped_column(String(50), default="Submitted")
+    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
 
     # Relationships
     user = relationship("User", back_populates="reports")

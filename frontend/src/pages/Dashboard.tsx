@@ -3,12 +3,30 @@ import { Link } from "react-router-dom";
 import {
   Activity,
   AlertCircle,
-  BarChart,
   CheckCircle2,
   Clock,
-  PieChart,
   Plus,
+  TrendingUp,
+  Users,
+  ShieldCheck,
 } from "lucide-react";
+
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  type PieLabelRenderProps,
+} from "recharts";
 
 import apiClient from "@/api/client";
 import authService from "@/api/auth";
@@ -24,7 +42,19 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// ─── Interfaces ──────────────────────────────────────────────────────────────
+// ─── Interfaces ───────────────────────────────────────────────────────────────
+
+interface MemberStatus {
+  user_id: number;
+  name: string;
+  status: "submitted" | "pending" | "late";
+}
+
+interface TrendPoint {
+  week: string;
+  reports: number;
+  blockers: number;
+}
 
 interface DashboardMetrics {
   summary: {
@@ -32,17 +62,15 @@ interface DashboardMetrics {
     open_blockers: number;
     active_projects: number;
     team_members: number;
+    compliance_rate: number;
+    submitted_this_week: number;
   };
   charts: {
     compliance: { status: string; count: number }[];
     project_workload: { project: string; count: number }[];
+    trend: TrendPoint[];
+    member_status: MemberStatus[];
   };
-}
-
-interface Project {
-  id: number;
-  project_name: string;
-  description: string | null;
 }
 
 interface WeeklyReport {
@@ -51,17 +79,28 @@ interface WeeklyReport {
   week_start_date: string;
   week_end_date: string;
   tasks_completed: string;
-  tasks_planned: string;
-  blockers: string;
   hours_worked: number | null;
-  notes: string | null;
-  user_id: number;
   submission_status: string;
   submitted_at: string;
-  project?: Project;
+  project?: { id: number; project_name: string };
 }
 
-// ─── Manager Dashboard View ──────────────────────────────────────────────────
+// ─── Colour helpers ───────────────────────────────────────────────────────────
+
+const PIE_COLORS: Record<string, string> = {
+  submitted: "#22c55e",
+  pending: "#f59e0b",
+  late: "#ef4444",
+  default: "#6366f1",
+};
+
+const MEMBER_STATUS_STYLES: Record<string, string> = {
+  submitted: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  pending:   "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  late:      "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+};
+
+// ─── Manager Dashboard ────────────────────────────────────────────────────────
 
 function ManagerDashboard(): JSX.Element {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -69,33 +108,25 @@ function ManagerDashboard(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchMetrics = async () => {
-      try {
-        const response = await apiClient.get<DashboardMetrics>(
-          "/api/v1/reports/dashboard-metrics"
-        );
-        setMetrics(response.data);
-      } catch (err: unknown) {
-        console.error(err);
-        setError("Failed to load dashboard metrics.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMetrics();
+    apiClient
+      .get<DashboardMetrics>("/api/v1/reports/dashboard-metrics")
+      .then((r) => setMetrics(r.data))
+      .catch(() => setError("Failed to load dashboard metrics."))
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
+      <div className="space-y-6">
+        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-64 w-full" />
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-72 w-full" />
+          ))}
         </div>
       </div>
     );
@@ -113,114 +144,257 @@ function ManagerDashboard(): JSX.Element {
 
   if (!metrics) return <></>;
 
+  const { summary, charts } = metrics;
+
+  const pieData = charts.compliance.map((item) => ({
+    ...item,
+    color: PIE_COLORS[item.status.toLowerCase()] ?? PIE_COLORS.default,
+  }));
+
+  const TOOLTIP_STYLE = {
+    background: "hsl(var(--card))",
+    border: "1px solid hsl(var(--border))",
+    borderRadius: "8px",
+    fontSize: "12px",
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Overview</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Manager Overview</h2>
         <p className="text-muted-foreground">
-          A high-level view of your team's weekly reports and blockers.
+          High-level view of your team's weekly reports, blockers, and compliance.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100 border-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
+      {/* ── Summary Cards ───────────────────────────────────────────── */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {/* Total Reports */}
+        <Card className="bg-blue-50 dark:bg-blue-900/20 border-none">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">Total Reports</CardTitle>
             <Activity className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold mb-1">{metrics.summary.total_reports}</div>
+            <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">{summary.total_reports}</div>
+            <p className="text-xs text-blue-700/70 dark:text-blue-300/70 mt-1">All time</p>
           </CardContent>
         </Card>
-        
-        <Card className="bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-100 border-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open Blockers</CardTitle>
+
+        {/* Submitted This Week */}
+        <Card className="bg-green-50 dark:bg-green-900/20 border-none">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">This Week</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-900 dark:text-green-100">{summary.submitted_this_week}</div>
+            <p className="text-xs text-green-700/70 dark:text-green-300/70 mt-1">Submitted</p>
+          </CardContent>
+        </Card>
+
+        {/* Compliance Rate */}
+        <Card className="bg-violet-50 dark:bg-violet-900/20 border-none">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-violet-900 dark:text-violet-100">Compliance</CardTitle>
+            <ShieldCheck className="h-4 w-4 text-violet-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-violet-900 dark:text-violet-100">{summary.compliance_rate}%</div>
+            <p className="text-xs text-violet-700/70 dark:text-violet-300/70 mt-1">Submission rate</p>
+          </CardContent>
+        </Card>
+
+        {/* Open Blockers */}
+        <Card className="bg-red-50 dark:bg-red-900/20 border-none">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-red-900 dark:text-red-100">Open Blockers</CardTitle>
             <AlertCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold mb-1">{metrics.summary.open_blockers}</div>
+            <div className="text-3xl font-bold text-red-900 dark:text-red-100">{summary.open_blockers}</div>
+            <p className="text-xs text-red-700/70 dark:text-red-300/70 mt-1">Across all reports</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-100 border-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-            <BarChart className="h-4 w-4 text-green-500" />
+        {/* Projects */}
+        <Card className="bg-amber-50 dark:bg-amber-900/20 border-none">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-amber-900 dark:text-amber-100">Projects</CardTitle>
+            <TrendingUp className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold mb-1">{metrics.summary.active_projects}</div>
+            <div className="text-3xl font-bold text-amber-900 dark:text-amber-100">{summary.active_projects}</div>
+            <p className="text-xs text-amber-700/70 dark:text-amber-300/70 mt-1">Active projects</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-purple-50 dark:bg-purple-900/20 text-purple-900 dark:text-purple-100 border-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-            <Activity className="h-4 w-4 text-purple-500" />
+        {/* Team Members */}
+        <Card className="bg-slate-50 dark:bg-slate-900/20 border-none">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-slate-900 dark:text-slate-100">Team Members</CardTitle>
+            <Users className="h-4 w-4 text-slate-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold mb-1">{metrics.summary.team_members}</div>
+            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">{summary.team_members}</div>
+            <p className="text-xs text-slate-700/70 dark:text-slate-300/70 mt-1">Registered users</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="col-span-1">
+      {/* ── Charts Row 1: Trend line + Compliance pie ──────────────── */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Line Chart — Submission trend + blockers */}
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5 text-blue-500" />
-              Compliance
+              <TrendingUp className="h-5 w-5 text-blue-500" />
+              Submission Trend
             </CardTitle>
-            <CardDescription>
-              Report submission status breakdown
-            </CardDescription>
+            <CardDescription>Reports submitted & blockers — last 8 weeks</CardDescription>
           </CardHeader>
           <CardContent>
-            {metrics.charts.compliance.length > 0 ? (
-              <div className="space-y-4">
-                {metrics.charts.compliance.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{item.status}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {item.count} report(s)
-                    </span>
-                  </div>
-                ))}
-              </div>
+            {charts.trend?.length > 0 ? (
+              <ResponsiveContainer width="100%" height={240}>
+                <LineChart data={charts.trend} margin={{ top: 5, right: 16, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="week" tick={{ fontSize: 11 }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Legend wrapperStyle={{ fontSize: "12px" }} />
+                  <Line
+                    type="monotone"
+                    dataKey="reports"
+                    name="Reports"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="blockers"
+                    name="Blockers"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    strokeDasharray="4 2"
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             ) : (
-              <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">
-                No data available
-              </div>
+              <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No data yet</div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="col-span-1">
+        {/* Pie Chart — Submission status breakdown */}
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BarChart className="h-5 w-5 text-indigo-500" />
-              Project Workload
+              <ShieldCheck className="h-5 w-5 text-violet-500" />
+              Submission Status
             </CardTitle>
-            <CardDescription>
-              Reports submitted per project
-            </CardDescription>
+            <CardDescription>All-time report status breakdown</CardDescription>
           </CardHeader>
           <CardContent>
-            {metrics.charts.project_workload.length > 0 ? (
-              <div className="space-y-4">
-                {metrics.charts.project_workload.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{item.project}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {item.count} report(s)
+            {pieData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={240}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    dataKey="count"
+                    nameKey="status"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={90}
+                    label={(props: PieLabelRenderProps) => {
+                      const name = String(props.name ?? "");
+                      const pct = ((Number(props.percent) || 0) * 100).toFixed(0);
+                      return `${name} ${pct}%`;
+                    }}
+                    labelLine={false}
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Legend wrapperStyle={{ fontSize: "12px" }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No data available</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Charts Row 2: Project bar chart + Member status matrix ─── */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Bar Chart — Workload by project */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-amber-500" />
+              Workload by Project
+            </CardTitle>
+            <CardDescription>Number of reports submitted per project</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {charts.project_workload?.length > 0 ? (
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={charts.project_workload} margin={{ top: 5, right: 16, left: -20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis
+                    dataKey="project"
+                    tick={{ fontSize: 11 }}
+                    angle={-20}
+                    textAnchor="end"
+                    interval={0}
+                  />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Bar dataKey="count" name="Reports" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No data available</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Per-member submission status this week */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-slate-500" />
+              This Week's Status
+            </CardTitle>
+            <CardDescription>Per-member report status for the current week</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {charts.member_status?.length > 0 ? (
+              <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                {charts.member_status.map((member) => (
+                  <div
+                    key={member.user_id}
+                    className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2"
+                  >
+                    <span className="text-sm font-medium">{member.name}</span>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${
+                        MEMBER_STATUS_STYLES[member.status] ?? "bg-slate-100 text-slate-800"
+                      }`}
+                    >
+                      {member.status}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">
-                No data available
-              </div>
+              <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">No team members found</div>
             )}
           </CardContent>
         </Card>
@@ -229,7 +403,7 @@ function ManagerDashboard(): JSX.Element {
   );
 }
 
-// ─── Team Member Dashboard View ──────────────────────────────────────────────
+// ─── Team Member Dashboard ────────────────────────────────────────────────────
 
 function TeamMemberDashboard(): JSX.Element {
   const [reports, setReports] = useState<WeeklyReport[]>([]);
@@ -237,21 +411,11 @@ function TeamMemberDashboard(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const response = await apiClient.get<WeeklyReport[]>(
-          "/api/v1/reports/my-reports"
-        );
-        setReports(response.data.slice(0, 5)); // Just show recent 5 on dashboard
-      } catch (err: unknown) {
-        console.error(err);
-        setError("Failed to load your recent reports.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReports();
+    apiClient
+      .get<WeeklyReport[]>("/api/v1/reports/my-reports")
+      .then((r) => setReports(r.data.slice(0, 5)))
+      .catch(() => setError("Failed to load your recent reports."))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -274,10 +438,13 @@ function TeamMemberDashboard(): JSX.Element {
         </Button>
       </div>
 
-      {/* Recent Reports List */}
+      {/* Recent Reports */}
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold tracking-tight">Recent Reports</h3>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/my-reports">View all</Link>
+          </Button>
         </div>
 
         {loading ? (
@@ -303,7 +470,7 @@ function TeamMemberDashboard(): JSX.Element {
                         {report.project?.project_name || "Unknown Project"}
                       </span>
                       <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                        {new Date(report.week_start_date).toLocaleDateString()} -{" "}
+                        {new Date(report.week_start_date).toLocaleDateString()} –{" "}
                         {new Date(report.week_end_date).toLocaleDateString()}
                       </span>
                     </div>
@@ -320,7 +487,7 @@ function TeamMemberDashboard(): JSX.Element {
                   </div>
                   <div className="mt-4 flex shrink-0 sm:mt-0">
                     <Button variant="outline" size="sm" asChild>
-                      <Link to={`/reports/${report.id}`}>View Details</Link>
+                      <Link to={`/submit-report/${report.id}`}>Edit</Link>
                     </Button>
                   </div>
                 </div>
@@ -349,15 +516,10 @@ function TeamMemberDashboard(): JSX.Element {
   );
 }
 
-// ─── Main Dashboard Page ─────────────────────────────────────────────────────
+// ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage(): JSX.Element {
   const role = authService.getRole();
   const isManager = role?.toLowerCase() === "manager";
-
-  return (
-    <div className="w-full">
-      {isManager ? <ManagerDashboard /> : <TeamMemberDashboard />}
-    </div>
-  );
+  return <div className="w-full">{isManager ? <ManagerDashboard /> : <TeamMemberDashboard />}</div>;
 }

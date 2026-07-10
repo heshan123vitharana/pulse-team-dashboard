@@ -7,3 +7,8 @@ project_root = "."
 
 # Search paths — "." lets `app` be found as a top-level package
 search_path = ["."]
+
+# Only analyse files inside the real source package.
+# This prevents Pyrefly from generating diagnostics for its own internal
+# virtual in-memory snippets (c:\__pyrefly_virtual__\inmemory\*.py).
+project_includes = ["app/**/*.py"]

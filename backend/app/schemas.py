@@ -52,6 +52,12 @@ class ProjectResponse(ProjectBase):
     class Config:
         from_attributes = True
 
+class ProjectSimpleResponse(ProjectBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
 
 # 3. WEEKLY REPORT SCHEMAS
 class WeeklyReportBase(BaseModel):
@@ -83,7 +89,7 @@ class WeeklyReportResponse(WeeklyReportBase):
     submission_status: str
     submitted_at: datetime
     user: Optional[UserResponse] = None # Manager dashboard can see user's details
-    project: Optional[ProjectResponse] = None
+    project: Optional[ProjectSimpleResponse] = None
 
     class Config:
         from_attributes = True
