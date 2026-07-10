@@ -130,9 +130,7 @@ export default function DashboardLayout(): JSX.Element {
         <div className="flex h-full flex-col">
           <div className="flex h-14 items-center border-b px-6 lg:h-[60px]">
             <Link to="/dashboard" className="flex items-center gap-2 font-semibold">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
-                <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
+              <img src="/logo.png" alt="Pulse Logo" className="h-8 w-8 object-contain" />
               <span className="text-lg tracking-tight">Pulse</span>
             </Link>
           </div>
@@ -166,9 +164,7 @@ export default function DashboardLayout(): JSX.Element {
                   className="flex items-center gap-2 font-semibold"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
-                    <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
+                  <img src="/logo.png" alt="Pulse Logo" className="h-8 w-8 object-contain" />
                   <span className="text-lg tracking-tight">Pulse</span>
                 </Link>
               </div>
