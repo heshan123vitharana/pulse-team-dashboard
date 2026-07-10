@@ -103,23 +103,23 @@ export function ChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <Card className="fixed bottom-6 right-6 z-50 flex h-[500px] w-[350px] sm:w-[400px] flex-col overflow-hidden shadow-2xl transition-all animate-in slide-in-from-bottom-5 fade-in-20 bg-white dark:bg-zinc-950">
-          <CardHeader className="flex flex-row items-center justify-between border-b bg-blue-600 dark:bg-blue-800 px-4 py-3 text-white">
+        <Card className="fixed bottom-6 right-6 z-50 flex h-[500px] w-[350px] sm:w-[400px] flex-col overflow-hidden shadow-2xl transition-all animate-in slide-in-from-bottom-5 fade-in-20 bg-white dark:bg-zinc-950 p-0 gap-0 border">
+          <CardHeader className="flex flex-row items-center justify-between border-b bg-blue-600 dark:bg-blue-800 px-4 py-3 text-white m-0">
             <div className="flex items-center gap-2">
               <Bot className="h-5 w-5" />
-              <CardTitle className="text-base font-semibold">AI Team Assistant</CardTitle>
+              <CardTitle className="text-base font-semibold m-0">AI Team Assistant</CardTitle>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsOpen(false)}
-              className="h-8 w-8 rounded-full text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground"
+              className="h-8 w-8 rounded-full text-white hover:bg-white/20 hover:text-white m-0"
             >
               <X className="h-4 w-4" />
             </Button>
           </CardHeader>
 
-          <CardContent className="flex flex-1 flex-col p-0">
+          <CardContent className="flex flex-1 flex-col p-0 min-h-0">
             <div className="flex-1 overflow-y-auto p-4" ref={scrollRef}>
               <div className="flex flex-col gap-4">
                 {messages.map((msg) => (
@@ -143,7 +143,7 @@ export function ChatWidget() {
                       )}
                     </div>
                     <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
+                      className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm break-words ${
                         msg.role === "user"
                           ? "bg-blue-600 dark:bg-blue-800 text-white"
                           : "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100"

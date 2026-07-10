@@ -14,7 +14,7 @@ from groq.types.chat import ChatCompletionMessageParam
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/chat", tags=["chat"])
+router = APIRouter(tags=["chat"])
 
 class ChatMessage(BaseModel):
     role: str
