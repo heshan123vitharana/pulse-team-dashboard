@@ -95,6 +95,7 @@ export default function DashboardLayout(): JSX.Element {
 
   const handleLogout = (): void => {
     authService.logout();
+    toast.success("Logged out successfully");
     navigate("/login", { replace: true });
   };
 

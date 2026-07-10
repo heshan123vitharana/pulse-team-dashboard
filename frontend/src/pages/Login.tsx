@@ -2,6 +2,7 @@ import { useState, type JSX, type FormEvent, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, Lock, Mail, Activity, ShieldCheck, AlertCircle } from "lucide-react";
 import authService, { type LoginCredentials } from "@/api/auth";
+import { toast } from "sonner";
 
 // ── Shadcn / custom UI components ──────────────────────────────────────────
 import { Button } from "@/components/ui/button";
@@ -144,6 +145,7 @@ function LoginForm(): JSX.Element {
 
       await authService.login(credentials);
 
+      toast.success("Successfully logged in");
       // Redirect to the dashboard after a successful login
       navigate("/dashboard", { replace: true });
     } catch (err: unknown) {
