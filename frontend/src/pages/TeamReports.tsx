@@ -181,87 +181,154 @@ export default function TeamReportsPage(): JSX.Element {
       )}
 
       {/* Reports Table */}
-      <div className="rounded-md border bg-card text-card-foreground shadow-sm overflow-hidden mt-6">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-muted/50 text-muted-foreground border-b">
-            <tr>
-              <th className="h-10 px-4 align-middle font-medium">Team Member</th>
-              <th className="h-10 px-4 align-middle font-medium">Project</th>
-              <th className="h-10 px-4 align-middle font-medium">Week</th>
-              <th className="h-10 px-4 align-middle font-medium">Status</th>
-              <th className="h-10 px-4 align-middle font-medium hidden md:table-cell">Summary</th>
-              <th className="h-10 px-4 align-middle font-medium text-right">Hours</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              // Loading State (Skeleton Rows)
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b transition-colors">
-                  <td className="p-4 align-middle"><Skeleton className="h-4 w-24" /></td>
-                  <td className="p-4 align-middle"><Skeleton className="h-4 w-32" /></td>
-                  <td className="p-4 align-middle"><Skeleton className="h-4 w-28" /></td>
-                  <td className="p-4 align-middle"><Skeleton className="h-4 w-20" /></td>
-                  <td className="p-4 align-middle hidden md:table-cell"><Skeleton className="h-4 w-full max-w-[200px]" /></td>
-                  <td className="p-4 align-middle text-right"><Skeleton className="h-4 w-12 ml-auto" /></td>
-                </tr>
-              ))
-            ) : reports.length === 0 && !error ? (
-              // Empty State
+      <div className="rounded-md border bg-card text-card-foreground shadow-sm mt-6 overflow-hidden">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-muted/50 text-muted-foreground border-b">
               <tr>
-                <td colSpan={6} className="h-48 text-center align-middle">
-                  <div className="flex flex-col items-center justify-center p-6 text-center">
-                    <h3 className="text-lg font-semibold mb-1">No reports found</h3>
-                    <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-                      We couldn't find any team reports matching your current filters.
-                    </p>
-                  </div>
-                </td>
+                <th className="h-10 px-4 align-middle font-medium">Team Member</th>
+                <th className="h-10 px-4 align-middle font-medium">Project</th>
+                <th className="h-10 px-4 align-middle font-medium">Week</th>
+                <th className="h-10 px-4 align-middle font-medium">Status</th>
+                <th className="h-10 px-4 align-middle font-medium hidden lg:table-cell">Summary</th>
+                <th className="h-10 px-4 align-middle font-medium text-right">Hours</th>
               </tr>
-            ) : (
-              // Data Rows
-              reports.map((report) => (
-                <tr key={report.id} className="border-b transition-colors hover:bg-muted/30">
-                  <td className="p-4 align-middle font-medium whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
-                      <User className="h-3.5 w-3.5 text-muted-foreground" />
-                      {report.user?.name || `User #${report.user_id}`}
+            </thead>
+            <tbody>
+              {loading ? (
+                // Loading State (Skeleton Rows)
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="border-b transition-colors">
+                    <td className="p-4 align-middle"><Skeleton className="h-4 w-24" /></td>
+                    <td className="p-4 align-middle"><Skeleton className="h-4 w-32" /></td>
+                    <td className="p-4 align-middle"><Skeleton className="h-4 w-28" /></td>
+                    <td className="p-4 align-middle"><Skeleton className="h-4 w-20" /></td>
+                    <td className="p-4 align-middle hidden lg:table-cell"><Skeleton className="h-4 w-full max-w-[200px]" /></td>
+                    <td className="p-4 align-middle text-right"><Skeleton className="h-4 w-12 ml-auto" /></td>
+                  </tr>
+                ))
+              ) : reports.length === 0 && !error ? (
+                // Empty State
+                <tr>
+                  <td colSpan={6} className="h-48 text-center align-middle">
+                    <div className="flex flex-col items-center justify-center p-6 text-center">
+                      <h3 className="text-lg font-semibold mb-1">No reports found</h3>
+                      <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                        We couldn't find any team reports matching your current filters.
+                      </p>
                     </div>
-                  </td>
-                  <td className="p-4 align-middle text-muted-foreground">
-                    <div className="flex items-center gap-1.5">
-                      <Briefcase className="h-3.5 w-3.5" />
-                      {report.project?.project_name || `Project #${report.project_id}`}
-                    </div>
-                  </td>
-                  <td className="p-4 align-middle whitespace-nowrap text-muted-foreground">
-                    {new Date(report.week_start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(report.week_end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                  </td>
-                  <td className="p-4 align-middle">
-                    <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold bg-primary/10 text-primary border-primary/20 whitespace-nowrap">
-                      {report.submission_status}
-                    </span>
-                  </td>
-                  <td className="p-4 align-middle hidden md:table-cell max-w-[300px]">
-                    <div className="truncate text-muted-foreground" title={report.tasks_completed}>
-                      <span className="text-foreground font-medium">✅ </span>
-                      {report.tasks_completed.length > 6 ? report.tasks_completed.substring(0, 6) + "..." : report.tasks_completed}
-                    </div>
-                    {report.blockers && report.blockers.toLowerCase() !== "none" && (
-                      <div className="truncate text-muted-foreground mt-1" title={report.blockers}>
-                        <span className="text-destructive font-medium">⚠️ </span>
-                        {report.blockers.length > 6 ? report.blockers.substring(0, 6) + "..." : report.blockers}
-                      </div>
-                    )}
-                  </td>
-                  <td className="p-4 align-middle text-right text-muted-foreground whitespace-nowrap">
-                    {report.hours_worked ? `${report.hours_worked} hrs` : "-"}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                // Data Rows
+                reports.map((report) => (
+                  <tr key={report.id} className="border-b transition-colors hover:bg-muted/30">
+                    <td className="p-4 align-middle font-medium whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <User className="h-3.5 w-3.5 text-muted-foreground" />
+                        {report.user?.name || `User #${report.user_id}`}
+                      </div>
+                    </td>
+                    <td className="p-4 align-middle text-muted-foreground">
+                      <div className="flex items-center gap-1.5">
+                        <Briefcase className="h-3.5 w-3.5" />
+                        {report.project?.project_name || `Project #${report.project_id}`}
+                      </div>
+                    </td>
+                    <td className="p-4 align-middle whitespace-nowrap text-muted-foreground">
+                      {new Date(report.week_start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(report.week_end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </td>
+                    <td className="p-4 align-middle">
+                      <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold bg-primary/10 text-primary border-primary/20 whitespace-nowrap">
+                        {report.submission_status}
+                      </span>
+                    </td>
+                    <td className="p-4 align-middle hidden lg:table-cell max-w-[300px]">
+                      <div className="truncate text-muted-foreground" title={report.tasks_completed}>
+                        <span className="text-foreground font-medium">✅ </span>
+                        {report.tasks_completed.length > 6 ? report.tasks_completed.substring(0, 6) + "..." : report.tasks_completed}
+                      </div>
+                      {report.blockers && report.blockers.toLowerCase() !== "none" && (
+                        <div className="truncate text-muted-foreground mt-1" title={report.blockers}>
+                          <span className="text-destructive font-medium">⚠️ </span>
+                          {report.blockers.length > 6 ? report.blockers.substring(0, 6) + "..." : report.blockers}
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-4 align-middle text-right text-muted-foreground whitespace-nowrap">
+                      {report.hours_worked ? `${report.hours_worked} hrs` : "-"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden flex flex-col divide-y divide-border">
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="p-4 space-y-3">
+                <div className="flex justify-between">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-16 w-full rounded-md" />
+              </div>
+            ))
+          ) : reports.length === 0 && !error ? (
+            <div className="flex flex-col items-center justify-center p-8 text-center">
+              <h3 className="text-lg font-semibold mb-1">No reports found</h3>
+              <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                We couldn't find any team reports matching your current filters.
+              </p>
+            </div>
+          ) : (
+            reports.map((report) => (
+              <div key={report.id} className="p-4 flex flex-col gap-3 hover:bg-muted/30 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="font-medium flex items-center gap-1.5">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    {report.user?.name || `User #${report.user_id}`}
+                  </div>
+                  <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-primary/10 text-primary border-primary/20">
+                    {report.submission_status}
+                  </span>
+                </div>
+                
+                <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <Briefcase className="h-3.5 w-3.5" />
+                    {report.project?.project_name || `Project #${report.project_id}`}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-foreground">Week:</span> {new Date(report.week_start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(report.week_end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  </div>
+                </div>
+
+                <div className="text-sm border rounded-md p-3 bg-muted/10">
+                  <div className="text-foreground line-clamp-2">
+                    <span className="font-medium mr-1">✅</span>
+                    {report.tasks_completed}
+                  </div>
+                  {report.blockers && report.blockers.toLowerCase() !== "none" && (
+                    <div className="text-muted-foreground mt-2 line-clamp-2">
+                      <span className="text-destructive font-medium mr-1">⚠️</span>
+                      {report.blockers}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end text-sm text-muted-foreground font-medium">
+                  {report.hours_worked ? `${report.hours_worked} hours` : "0 hours"}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
 
         {/* Footer: row count */}
         {!loading && reports.length > 0 && (

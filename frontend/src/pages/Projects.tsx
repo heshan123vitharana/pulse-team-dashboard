@@ -363,125 +363,213 @@ export default function ProjectsPage(): JSX.Element {
       )}
 
       {/* ── Table ─────────────────────────────────────────────── */}
-      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground w-8">#</th>
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Project Name</th>
-              <th className="px-4 py-3 text-left font-semibold text-muted-foreground hidden md:table-cell">Description</th>
-              <th className="px-4 py-3 text-center font-semibold text-muted-foreground w-28">Members</th>
-              {isManager && (
-                <th className="px-4 py-3 text-right font-semibold text-muted-foreground w-36">Actions</th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              /* Skeleton rows */
-              Array.from({ length: 4 }).map((_, i) => (
-                <tr key={i} className="border-b last:border-0">
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-4" /></td>
-                  <td className="px-4 py-3"><Skeleton className="h-4 w-40" /></td>
-                  <td className="px-4 py-3 hidden md:table-cell"><Skeleton className="h-4 w-64" /></td>
-                  <td className="px-4 py-3 text-center"><Skeleton className="h-4 w-8 mx-auto" /></td>
-                  {isManager && <td className="px-4 py-3"><Skeleton className="h-8 w-24 ml-auto" /></td>}
-                </tr>
-              ))
-            ) : projects.length === 0 ? (
-              <tr>
-                <td colSpan={isManager ? 5 : 4} className="px-4 py-16 text-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="rounded-full bg-muted p-3">
-                      <Users className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <p className="font-medium">No projects found</p>
-                    <p className="text-xs text-muted-foreground max-w-xs">
-                      {isManager
-                        ? "Create your first project to get started."
-                        : "You haven't been assigned to any projects yet."}
-                    </p>
-                    {isManager && (
-                      <Button size="sm" onClick={() => setIsDialogOpen(true)}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Project
-                      </Button>
-                    )}
-                  </div>
-                </td>
+      <div className="rounded-xl border bg-card shadow-sm mt-6 overflow-hidden">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="px-4 py-3 text-left font-semibold text-muted-foreground w-8">#</th>
+                <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Project Name</th>
+                <th className="px-4 py-3 text-left font-semibold text-muted-foreground hidden lg:table-cell">Description</th>
+                <th className="px-4 py-3 text-center font-semibold text-muted-foreground w-28">Members</th>
+                {isManager && (
+                  <th className="px-4 py-3 text-right font-semibold text-muted-foreground w-36">Actions</th>
+                )}
               </tr>
-            ) : (
-              projects.map((project, index) => (
-                <tr
-                  key={project.id}
-                  className="border-b last:border-0 hover:bg-muted/30 transition-colors group"
-                >
-                  {/* Row number */}
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
-                    {index + 1}
-                  </td>
-
-                  {/* Project name */}
-                  <td className="px-4 py-3">
-                    <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                      {project.project_name}
-                    </span>
-                  </td>
-
-                  {/* Description */}
-                  <td className="px-4 py-3 hidden md:table-cell">
-                    <span className="text-muted-foreground line-clamp-1 max-w-sm">
-                      {project.description || (
-                        <span className="italic opacity-50">No description</span>
-                      )}
-                    </span>
-                  </td>
-
-                  {/* Member count badge */}
-                  <td className="px-4 py-3 text-center">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                      <Users className="h-3 w-3" />
-                      {project.users?.length ?? 0}
-                    </span>
-                  </td>
-
-                  {/* Manager actions */}
-                  {isManager && (
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-                          onClick={() => openManageTeamDialog(project)}
-                        >
-                          <Users className="h-3.5 w-3.5" />
-                          Team
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                          onClick={() => openEditDialog(project)}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => setProjectToDelete(project.id)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+            </thead>
+            <tbody>
+              {loading ? (
+                /* Skeleton rows */
+                Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i} className="border-b last:border-0">
+                    <td className="px-4 py-3"><Skeleton className="h-4 w-4" /></td>
+                    <td className="px-4 py-3"><Skeleton className="h-4 w-40" /></td>
+                    <td className="px-4 py-3 hidden lg:table-cell"><Skeleton className="h-4 w-64" /></td>
+                    <td className="px-4 py-3 text-center"><Skeleton className="h-4 w-8 mx-auto" /></td>
+                    {isManager && <td className="px-4 py-3"><Skeleton className="h-8 w-24 ml-auto" /></td>}
+                  </tr>
+                ))
+              ) : projects.length === 0 ? (
+                <tr>
+                  <td colSpan={isManager ? 5 : 4} className="px-4 py-16 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="rounded-full bg-muted p-3">
+                        <Users className="h-6 w-6 text-muted-foreground" />
                       </div>
-                    </td>
-                  )}
+                      <p className="font-medium">No projects found</p>
+                      <p className="text-xs text-muted-foreground max-w-xs">
+                        {isManager
+                          ? "Create your first project to get started."
+                          : "You haven't been assigned to any projects yet."}
+                      </p>
+                      {isManager && (
+                        <Button size="sm" onClick={() => setIsDialogOpen(true)}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Create Project
+                        </Button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                projects.map((project, index) => (
+                  <tr
+                    key={project.id}
+                    className="border-b last:border-0 hover:bg-muted/30 transition-colors group"
+                  >
+                    {/* Row number */}
+                    <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
+                      {index + 1}
+                    </td>
+
+                    {/* Project name */}
+                    <td className="px-4 py-3">
+                      <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {project.project_name}
+                      </span>
+                    </td>
+
+                    {/* Description */}
+                    <td className="px-4 py-3 hidden lg:table-cell">
+                      <span className="text-muted-foreground line-clamp-1 max-w-sm">
+                        {project.description || (
+                          <span className="italic opacity-50">No description</span>
+                        )}
+                      </span>
+                    </td>
+
+                    {/* Member count badge */}
+                    <td className="px-4 py-3 text-center">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                        <Users className="h-3 w-3" />
+                        {project.users?.length ?? 0}
+                      </span>
+                    </td>
+
+                    {/* Manager actions */}
+                    {isManager && (
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                            onClick={() => openManageTeamDialog(project)}
+                          >
+                            <Users className="h-3.5 w-3.5" />
+                            Team
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() => openEditDialog(project)}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setProjectToDelete(project.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden flex flex-col divide-y divide-border">
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="p-4 space-y-3">
+                <div className="flex justify-between">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-5 w-12 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                {isManager && <Skeleton className="h-8 w-full mt-2" />}
+              </div>
+            ))
+          ) : projects.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 p-8 text-center">
+              <div className="rounded-full bg-muted p-3">
+                <Users className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="font-medium">No projects found</p>
+              <p className="text-xs text-muted-foreground max-w-xs">
+                {isManager
+                  ? "Create your first project to get started."
+                  : "You haven't been assigned to any projects yet."}
+              </p>
+              {isManager && (
+                <Button size="sm" onClick={() => setIsDialogOpen(true)} className="mt-2">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Project
+                </Button>
+              )}
+            </div>
+          ) : (
+            projects.map((project, index) => (
+              <div key={project.id} className="p-4 flex flex-col gap-3 hover:bg-muted/30 transition-colors group">
+                <div className="flex items-start justify-between">
+                  <div className="font-semibold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                    <span className="text-muted-foreground font-mono text-xs bg-muted/50 px-1.5 py-0.5 rounded">{index + 1}</span>
+                    {project.project_name}
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                    <Users className="h-3 w-3" />
+                    {project.users?.length ?? 0}
+                  </span>
+                </div>
+
+                {project.description && (
+                  <div className="text-sm text-muted-foreground border rounded-md p-3 bg-muted/10">
+                    {project.description}
+                  </div>
+                )}
+
+                {isManager && (
+                  <div className="flex justify-end gap-1 mt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openManageTeamDialog(project)}
+                    >
+                      <Users className="mr-2 h-3.5 w-3.5" />
+                      Team
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(project)}
+                    >
+                      <Pencil className="mr-2 h-3.5 w-3.5" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => setProjectToDelete(project.id)}
+                    >
+                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      Delete
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
 
         {/* Footer: row count */}
         {!loading && projects.length > 0 && (

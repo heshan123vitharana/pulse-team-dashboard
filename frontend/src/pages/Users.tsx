@@ -208,8 +208,9 @@ export default function UsersPage(): JSX.Element {
               <Users className="h-5 w-5" /> All Users
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
+          <CardContent className="p-0 sm:p-6">
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
                   <tr>
@@ -245,6 +246,35 @@ export default function UsersPage(): JSX.Element {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="sm:hidden flex flex-col divide-y divide-border border-t sm:border-none">
+              {users.map((user) => (
+                <div key={user.id} className="p-4 flex flex-col gap-2 hover:bg-muted/30 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div className="font-semibold text-foreground flex items-center gap-2">
+                      <span className="text-muted-foreground font-mono text-xs bg-muted/50 px-1.5 py-0.5 rounded">#{user.id}</span>
+                      {user.name}
+                    </div>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                      user.role_id === 1 
+                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                        : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+                    }`}>
+                      {user.role_id === 1 ? "Manager" : "Team Member"}
+                    </span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {user.email}
+                  </div>
+                </div>
+              ))}
+              {users.length === 0 && (
+                <div className="p-8 text-center text-muted-foreground">
+                  No users found.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
