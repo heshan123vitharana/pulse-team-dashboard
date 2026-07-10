@@ -49,9 +49,10 @@ export default function DashboardLayout(): JSX.Element {
     const token = localStorage.getItem(TOKEN_STORAGE_KEY);
     if (!token) return;
 
-    // Build ws:// or wss:// URL based on current origin, but hardcoded to backend port for dev
-    // If the frontend is on port 5173, backend is on 8000
-    const wsUrl = `ws://localhost:8000/api/v1/notifications/ws?token=${token}`;
+    // Build ws:// or wss:// URL based on VITE_API_BASE_URL
+    const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+    const wsBaseUrl = baseUrl.replace(/^http/, "ws");
+    const wsUrl = `${wsBaseUrl}/api/v1/notifications/ws?token=${token}`;
     const ws = new WebSocket(wsUrl);
 
     ws.onmessage = (event) => {
