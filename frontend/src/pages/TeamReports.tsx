@@ -3,7 +3,7 @@ import { getAllReports, type WeeklyReportResponse, type ReportFilters } from "@/
 import { getProjects, type Project } from "@/api/projects";
 import authService, { type User as AuthUser } from "@/api/auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -180,95 +180,96 @@ export default function TeamReportsPage(): JSX.Element {
         </div>
       )}
 
-      {/* Reports Grid */}
-      {loading ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="flex flex-col">
-              <CardHeader className="pb-2">
-                <Skeleton className="h-5 w-1/2 mb-1" />
-                <Skeleton className="h-4 w-1/3" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton className="h-20 w-full" />
-                <Skeleton className="h-10 w-full" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : reports.length === 0 && !error ? (
-        <div className="flex flex-col items-center justify-center p-12 text-center border rounded-lg border-dashed bg-muted/30">
-          <h3 className="text-xl font-semibold mb-2">No reports found</h3>
-          <p className="text-muted-foreground max-w-sm mx-auto">
-            We couldn't find any team reports matching your current filters.
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {reports.map((report) => (
-            <Card key={report.id} className="flex flex-col shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3 border-b bg-muted/5">
-                <div className="flex justify-between items-start gap-4">
-                  <div>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <User className="h-4 w-4 text-primary" />
-                      {report.user?.name || `User #${report.user_id}`}
-                    </CardTitle>
-                    <CardDescription className="flex items-center gap-1.5 mt-1.5">
-                      <Briefcase className="h-3.5 w-3.5" />
-                      {report.project?.project_name || `Project #${report.project_id}`}
-                    </CardDescription>
-                  </div>
-                  <div className="text-right">
-                    <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-primary/10 text-primary border-primary/20">
-                      {report.submission_status}
-                    </span>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="flex-1 pt-4 space-y-4 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground border-b pb-3">
-                  <Calendar className="h-4 w-4" />
-                  <span>
-                    {new Date(report.week_start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} 
-                    {" - "} 
-                    {new Date(report.week_end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-medium flex items-center gap-1.5 text-foreground mb-1">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      Completed
-                    </h4>
-                    <p className="text-muted-foreground line-clamp-3 pl-5.5">
-                      {report.tasks_completed}
+      {/* Reports Table */}
+      <div className="rounded-md border bg-card text-card-foreground shadow-sm overflow-hidden mt-6">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-muted/50 text-muted-foreground border-b">
+            <tr>
+              <th className="h-10 px-4 align-middle font-medium">Team Member</th>
+              <th className="h-10 px-4 align-middle font-medium">Project</th>
+              <th className="h-10 px-4 align-middle font-medium">Week</th>
+              <th className="h-10 px-4 align-middle font-medium">Status</th>
+              <th className="h-10 px-4 align-middle font-medium hidden md:table-cell">Summary</th>
+              <th className="h-10 px-4 align-middle font-medium text-right">Hours</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              // Loading State (Skeleton Rows)
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-b transition-colors">
+                  <td className="p-4 align-middle"><Skeleton className="h-4 w-24" /></td>
+                  <td className="p-4 align-middle"><Skeleton className="h-4 w-32" /></td>
+                  <td className="p-4 align-middle"><Skeleton className="h-4 w-28" /></td>
+                  <td className="p-4 align-middle"><Skeleton className="h-4 w-20" /></td>
+                  <td className="p-4 align-middle hidden md:table-cell"><Skeleton className="h-4 w-full max-w-[200px]" /></td>
+                  <td className="p-4 align-middle text-right"><Skeleton className="h-4 w-12 ml-auto" /></td>
+                </tr>
+              ))
+            ) : reports.length === 0 && !error ? (
+              // Empty State
+              <tr>
+                <td colSpan={6} className="h-48 text-center align-middle">
+                  <div className="flex flex-col items-center justify-center p-6 text-center">
+                    <h3 className="text-lg font-semibold mb-1">No reports found</h3>
+                    <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                      We couldn't find any team reports matching your current filters.
                     </p>
                   </div>
-
-                  {report.blockers && report.blockers.toLowerCase() !== "none" && (
-                    <div>
-                      <h4 className="font-medium flex items-center gap-1.5 text-foreground mb-1">
-                        <AlertCircle className="h-4 w-4 text-destructive" />
-                        Blockers
-                      </h4>
-                      <p className="text-muted-foreground line-clamp-2 pl-5.5">
-                        {report.blockers}
-                      </p>
+                </td>
+              </tr>
+            ) : (
+              // Data Rows
+              reports.map((report) => (
+                <tr key={report.id} className="border-b transition-colors hover:bg-muted/30">
+                  <td className="p-4 align-middle font-medium whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <User className="h-3.5 w-3.5 text-muted-foreground" />
+                      {report.user?.name || `User #${report.user_id}`}
                     </div>
-                  )}
-                </div>
-              </CardContent>
-              <CardFooter className="pt-3 border-t bg-muted/5 text-xs text-muted-foreground flex justify-between">
-                <span>Submitted: {new Date(report.submitted_at).toLocaleDateString()}</span>
-                {report.hours_worked ? <span>{report.hours_worked} hrs logged</span> : null}
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      )}
+                  </td>
+                  <td className="p-4 align-middle text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Briefcase className="h-3.5 w-3.5" />
+                      {report.project?.project_name || `Project #${report.project_id}`}
+                    </div>
+                  </td>
+                  <td className="p-4 align-middle whitespace-nowrap text-muted-foreground">
+                    {new Date(report.week_start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(report.week_end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  </td>
+                  <td className="p-4 align-middle">
+                    <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold bg-primary/10 text-primary border-primary/20 whitespace-nowrap">
+                      {report.submission_status}
+                    </span>
+                  </td>
+                  <td className="p-4 align-middle hidden md:table-cell max-w-[300px]">
+                    <div className="truncate text-muted-foreground" title={report.tasks_completed}>
+                      <span className="text-foreground font-medium">✅ </span>
+                      {report.tasks_completed}
+                    </div>
+                    {report.blockers && report.blockers.toLowerCase() !== "none" && (
+                      <div className="truncate text-muted-foreground mt-1" title={report.blockers}>
+                        <span className="text-destructive font-medium">⚠️ </span>
+                        {report.blockers}
+                      </div>
+                    )}
+                  </td>
+                  <td className="p-4 align-middle text-right text-muted-foreground whitespace-nowrap">
+                    {report.hours_worked ? `${report.hours_worked} hrs` : "-"}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        {/* Footer: row count */}
+        {!loading && reports.length > 0 && (
+          <div className="border-t bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
+            Showing {reports.length} report{reports.length !== 1 ? "s" : ""}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

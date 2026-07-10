@@ -15,6 +15,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function ProjectsPage(): JSX.Element {
@@ -27,6 +38,7 @@ export default function ProjectsPage(): JSX.Element {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isManageTeamDialogOpen, setIsManageTeamDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -121,15 +133,17 @@ export default function ProjectsPage(): JSX.Element {
   };
 
   const handleDeleteProject = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this project?")) return;
     try {
       setLoading(true);
       await deleteProject(id);
       await fetchProjects();
+      toast.success("Project deleted successfully");
     } catch (err) {
       console.error("Failed to delete project:", err);
-      setError("Failed to delete project.");
+      toast.error("Failed to delete project.");
       setLoading(false);
+    } finally {
+      setProjectToDelete(null);
     }
   };
 
@@ -456,7 +470,7 @@ export default function ProjectsPage(): JSX.Element {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteProject(project.id)}
+                          onClick={() => setProjectToDelete(project.id)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -476,6 +490,27 @@ export default function ProjectsPage(): JSX.Element {
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!projectToDelete} onOpenChange={(open) => !open && setProjectToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this project? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => projectToDelete && handleDeleteProject(projectToDelete)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
