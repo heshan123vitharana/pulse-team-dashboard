@@ -57,9 +57,7 @@ function BrandingPanel(): JSX.Element {
 
       {/* Logo / brand mark */}
       <div className="relative z-10 flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/20 ring-1 ring-white/10 backdrop-blur-sm">
-          <Activity className="h-5 w-5 text-blue-300" />
-        </div>
+        <img src="/logo.png" alt="Pulse Logo" className="h-10 w-10 object-contain rounded-xl bg-white/10 p-1 backdrop-blur-sm" />
         <span className="text-lg font-bold tracking-tight">Pulse Dashboard</span>
       </div>
 
@@ -162,9 +160,7 @@ function LoginForm(): JSX.Element {
       <CardHeader className="space-y-1 pb-2">
         {/* Mobile-only logo mark */}
         <div className="mb-3 flex items-center gap-2 lg:hidden">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
-            <Activity className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          </div>
+          <img src="/logo.png" alt="Pulse Logo" className="h-8 w-8 object-contain" />
           <span className="text-base font-bold tracking-tight text-foreground">
             Pulse Dashboard
           </span>
