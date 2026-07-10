@@ -1,7 +1,7 @@
 import { type JSX, useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
-  Activity,
+
   BarChart3,
   FolderKanban,
   LayoutDashboard,

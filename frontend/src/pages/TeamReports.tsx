@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { Calendar, User, Briefcase, AlertCircle, CheckCircle } from "lucide-react";
+import { User, Briefcase } from "lucide-react";
 
 export default function TeamReportsPage(): JSX.Element {
   const [reports, setReports] = useState<WeeklyReportResponse[]>([]);

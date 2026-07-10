@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { getMyReports, deleteReport, type WeeklyReportResponse } from "@/api/reports";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Briefcase, AlertCircle, CheckCircle, Pencil, Trash2, Plus } from "lucide-react";
+import { Briefcase, Pencil, Trash2, Plus } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
