@@ -92,6 +92,7 @@ export default function DashboardLayout(): JSX.Element {
           { name: "My Reports", href: "/my-reports", icon: BarChart3 }
         ]),
     { name: "Projects", href: "/projects", icon: FolderKanban },
+    { name: "Backlog", href: "/backlog", icon: FolderKanban },
     { name: "Kanban Board", href: "/kanban", icon: FolderKanban },
   ];
 

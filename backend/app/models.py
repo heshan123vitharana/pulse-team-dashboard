@@ -57,6 +57,7 @@ class Project(Base):
     reports = relationship("WeeklyReport", back_populates="project")
     users = relationship("User", secondary=user_projects, back_populates="projects")
     sprints = relationship("Sprint", back_populates="project")
+    tasks = relationship("Task", back_populates="project")
 
 
 # ==========================================
@@ -111,11 +112,48 @@ class Task(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
-    status: Mapped[str] = mapped_column(String(50), default="TODO") # "TODO", "IN_PROGRESS", "DONE"
-    sprint_id: Mapped[int] = mapped_column(Integer, ForeignKey("sprints.id", ondelete="CASCADE"), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="TODO") # "TODO", "IN_PROGRESS", "REVIEW", "QA", "DONE"
+    project_id: Mapped[int] = mapped_column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    sprint_id: Mapped[int] = mapped_column(Integer, ForeignKey("sprints.id", ondelete="CASCADE"), nullable=True)
     assignee_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     story_points: Mapped[int] = mapped_column(Integer, nullable=True)
+    attachment_url: Mapped[str] = mapped_column(String(500), nullable=True)
 
     # Relationships
+    project = relationship("Project", back_populates="tasks")
     sprint = relationship("Sprint", back_populates="tasks")
     assignee = relationship("User", back_populates="tasks")
+    comments = relationship("Comment", back_populates="task", cascade="all, delete-orphan")
+    subtasks = relationship("Subtask", back_populates="task", cascade="all, delete-orphan")
+
+
+# ==========================================
+# 7. COMMENTS TABLE
+# ==========================================
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    task_id: Mapped[int] = mapped_column(Integer, ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False)
+    author_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    task = relationship("Task", back_populates="comments")
+    author = relationship("User")
+
+
+# ==========================================
+# 8. SUBTASKS TABLE
+# ==========================================
+class Subtask(Base):
+    __tablename__ = "subtasks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    is_completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    task_id: Mapped[int] = mapped_column(Integer, ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False)
+
+    # Relationships
+    task = relationship("Task", back_populates="subtasks")

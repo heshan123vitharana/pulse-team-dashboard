@@ -120,15 +120,53 @@ class SprintResponse(SprintBase):
     class Config:
         from_attributes = True
 
-# 5. TASK SCHEMAS
+# 5. COMMENT SCHEMAS
+class CommentBase(BaseModel):
+    content: str
+
+class CommentCreate(CommentBase):
+    pass
+
+class CommentResponse(CommentBase):
+    id: int
+    task_id: int
+    author_id: int
+    created_at: datetime
+    author: Optional[UserResponse] = None
+
+    class Config:
+        from_attributes = True
+
+# 6. SUBTASK SCHEMAS
+class SubtaskBase(BaseModel):
+    title: str
+    is_completed: bool = False
+
+class SubtaskCreate(SubtaskBase):
+    pass
+
+class SubtaskUpdate(BaseModel):
+    title: Optional[str] = None
+    is_completed: Optional[bool] = None
+
+class SubtaskResponse(SubtaskBase):
+    id: int
+    task_id: int
+
+    class Config:
+        from_attributes = True
+
+# 7. TASK SCHEMAS
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
     status: str = "TODO"
     story_points: Optional[int] = None
+    attachment_url: Optional[str] = None
 
 class TaskCreate(TaskBase):
-    sprint_id: int
+    project_id: int
+    sprint_id: Optional[int] = None
     assignee_id: Optional[int] = None
 
 class TaskUpdate(BaseModel):
@@ -137,14 +175,19 @@ class TaskUpdate(BaseModel):
     status: Optional[str] = None
     assignee_id: Optional[int] = None
     story_points: Optional[int] = None
+    sprint_id: Optional[int] = None
+    attachment_url: Optional[str] = None
 
 class TaskUpdateStatus(BaseModel):
     status: str
 
 class TaskResponse(TaskBase):
     id: int
-    sprint_id: int
+    project_id: int
+    sprint_id: Optional[int] = None
     assignee_id: Optional[int] = None
+    subtasks: list[SubtaskResponse] = []
+    comments: list[CommentResponse] = []
 
     class Config:
         from_attributes = True

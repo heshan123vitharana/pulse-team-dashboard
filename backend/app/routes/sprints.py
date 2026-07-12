@@ -62,3 +62,33 @@ def create_sprint(
     db.commit()
     db.refresh(new_sprint)
     return new_sprint
+
+@router.post("/{sprint_id}/complete", response_model=schemas.SprintResponse)
+def complete_sprint(
+    sprint_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Complete a sprint and move unfinished tasks to the backlog."""
+    sprint = db.query(models.Sprint).filter(models.Sprint.id == sprint_id).first()
+    if not sprint:
+        raise HTTPException(status_code=404, detail="Sprint not found")
+        
+    project = sprint.project
+    if current_user.role.role_name.lower() != "manager" and current_user not in project.users:
+         raise HTTPException(status_code=403, detail="Not authorized to complete sprints for this project")
+         
+    sprint.is_active = False
+    
+    # Move unfinished tasks to backlog
+    unfinished_tasks = db.query(models.Task).filter(
+        models.Task.sprint_id == sprint_id,
+        models.Task.status != "DONE"
+    ).all()
+    
+    for task in unfinished_tasks:
+        task.sprint_id = None
+        
+    db.commit()
+    db.refresh(sprint)
+    return sprint
