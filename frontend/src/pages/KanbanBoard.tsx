@@ -6,6 +6,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
 } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
 import {
@@ -15,7 +16,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { getProjects, type Project } from "@/api/projects";
@@ -24,6 +25,8 @@ import {
   getTasksForSprint,
   createTask,
   updateTaskStatus,
+  updateTask,
+  deleteTask,
   createSprint,
   type Sprint,
   type Task,
@@ -39,9 +42,10 @@ import { Textarea } from "@/components/ui/textarea";
 // ─── Sortable Task Card ────────────────────────────────────────────────────────
 interface SortableTaskProps {
   task: Task;
+  onClick: () => void;
 }
 
-function SortableTask({ task }: SortableTaskProps) {
+function SortableTask({ task, onClick }: SortableTaskProps) {
   const {
     attributes,
     listeners,
@@ -58,10 +62,24 @@ function SortableTask({ task }: SortableTaskProps) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="mb-2 cursor-grab active:cursor-grabbing touch-none">
-      <Card className="hover:shadow-md transition-shadow">
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="mb-2 cursor-grab active:cursor-grabbing touch-none group">
+      <Card className="hover:shadow-md transition-shadow relative">
         <CardHeader className="p-3">
-          <CardTitle className="text-sm font-semibold">{task.title}</CardTitle>
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-sm font-semibold pr-6">{task.title}</CardTitle>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              onPointerDown={(e) => e.stopPropagation()} // Prevent dragging when clicking button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick();
+              }}
+            >
+              <Pencil className="h-3 w-3" />
+            </Button>
+          </div>
           {task.description && (
             <CardDescription className="text-xs line-clamp-2 mt-1">
               {task.description}
@@ -69,6 +87,51 @@ function SortableTask({ task }: SortableTaskProps) {
           )}
         </CardHeader>
       </Card>
+    </div>
+  );
+}
+
+// ─── Droppable Column Component ────────────────────────────────────────────────
+function KanbanColumn({
+  col,
+  tasks,
+  openTaskDialog,
+  openEditDialog
+}: {
+  col: { id: string; title: string };
+  tasks: Task[];
+  openTaskDialog: (status: string) => void;
+  openEditDialog: (task: Task) => void;
+}) {
+  const { setNodeRef } = useDroppable({ id: col.id });
+  return (
+    <div className="flex-1 min-w-[300px] flex flex-col bg-muted/40 rounded-xl p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold">{col.title}</h3>
+        <span className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full">
+          {tasks.length}
+        </span>
+      </div>
+      
+      <SortableContext
+        id={col.id}
+        items={tasks.map(t => t.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <div ref={setNodeRef} className="flex-1 min-h-[200px]">
+          {tasks.map(task => (
+            <SortableTask key={task.id} task={task} onClick={() => openEditDialog(task)} />
+          ))}
+        </div>
+      </SortableContext>
+      
+      <Button
+        variant="ghost"
+        className="w-full mt-2 text-muted-foreground hover:text-foreground justify-start"
+        onClick={() => openTaskDialog(col.id)}
+      >
+        <Plus className="mr-2 h-4 w-4" /> Add Task
+      </Button>
     </div>
   );
 }
@@ -93,6 +156,13 @@ export default function KanbanBoard() {
   const [newTaskColumn, setNewTaskColumn] = useState("TODO");
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
+  
+  // Edit Task Dialog State
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editTaskTitle, setEditTaskTitle] = useState("");
+  const [editTaskDescription, setEditTaskDescription] = useState("");
+  const [editTaskAssignee, setEditTaskAssignee] = useState<number | "">("");
   
   // New Sprint Dialog State (if no sprint exists)
   const [isSprintDialogOpen, setIsSprintDialogOpen] = useState(false);
@@ -149,6 +219,9 @@ export default function KanbanBoard() {
       setLoading(false);
     }
   };
+
+  const currentProject = projects.find(p => p.id === selectedProjectId);
+  const projectUsers = currentProject?.users || [];
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -212,6 +285,44 @@ export default function KanbanBoard() {
     }
   };
   
+  const handleUpdateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask || !editTaskTitle.trim()) return;
+    
+    try {
+      const updatedData = {
+        title: editTaskTitle,
+        description: editTaskDescription,
+        assignee_id: editTaskAssignee === "" ? null : Number(editTaskAssignee)
+      };
+      
+      const updatedTask = await updateTask(editingTask.id, updatedData);
+      setTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, ...updatedTask } : t));
+      
+      setIsEditDialogOpen(false);
+      setEditingTask(null);
+      toast.success("Task updated");
+    } catch (err) {
+      toast.error("Failed to update task");
+    }
+  };
+  
+  const handleDeleteTask = async () => {
+    if (!editingTask) return;
+    
+    if (!confirm("Are you sure you want to delete this task?")) return;
+    
+    try {
+      await deleteTask(editingTask.id);
+      setTasks(prev => prev.filter(t => t.id !== editingTask.id));
+      setIsEditDialogOpen(false);
+      setEditingTask(null);
+      toast.success("Task deleted");
+    } catch (err) {
+      toast.error("Failed to delete task");
+    }
+  };
+  
   const handleCreateSprint = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProjectId || !newSprintName.trim()) return;
@@ -245,6 +356,14 @@ export default function KanbanBoard() {
     setNewTaskTitle("");
     setNewTaskDescription("");
     setIsTaskDialogOpen(true);
+  };
+  
+  const openEditDialog = (task: Task) => {
+    setEditingTask(task);
+    setEditTaskTitle(task.title);
+    setEditTaskDescription(task.description || "");
+    setEditTaskAssignee(task.assignee_id || "");
+    setIsEditDialogOpen(true);
   };
 
   if (loading) {
@@ -334,34 +453,13 @@ export default function KanbanBoard() {
             {COLUMNS.map((col) => {
               const columnTasks = tasks.filter(t => t.status === col.id);
               return (
-                <div key={col.id} className="flex-1 min-w-[300px] flex flex-col bg-muted/40 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold">{col.title}</h3>
-                    <span className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full">
-                      {columnTasks.length}
-                    </span>
-                  </div>
-                  
-                  <SortableContext
-                    id={col.id}
-                    items={columnTasks.map(t => t.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    <div className="flex-1 min-h-[200px]">
-                      {columnTasks.map(task => (
-                        <SortableTask key={task.id} task={task} />
-                      ))}
-                    </div>
-                  </SortableContext>
-                  
-                  <Button
-                    variant="ghost"
-                    className="w-full mt-2 text-muted-foreground hover:text-foreground justify-start"
-                    onClick={() => openTaskDialog(col.id)}
-                  >
-                    <Plus className="mr-2 h-4 w-4" /> Add Task
-                  </Button>
-                </div>
+                <KanbanColumn 
+                  key={col.id} 
+                  col={col} 
+                  tasks={columnTasks} 
+                  openTaskDialog={openTaskDialog}
+                  openEditDialog={openEditDialog}
+                />
               );
             })}
           </div>
@@ -400,6 +498,63 @@ export default function KanbanBoard() {
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsTaskDialogOpen(false)}>Cancel</Button>
               <Button type="submit">Create Task</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* ─── Edit Task Dialog ─────────────────────────────────────────────────── */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <form onSubmit={handleUpdateTask}>
+            <DialogHeader>
+              <DialogTitle>Edit Task</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-title">Title</Label>
+                <Input
+                  id="edit-title"
+                  value={editTaskTitle}
+                  onChange={(e) => setEditTaskTitle(e.target.value)}
+                  placeholder="Task title..."
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-description">Description (Optional)</Label>
+                <Textarea
+                  id="edit-description"
+                  value={editTaskDescription}
+                  onChange={(e) => setEditTaskDescription(e.target.value)}
+                  placeholder="Details..."
+                  rows={3}
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="edit-assignee">Assignee</Label>
+                <select
+                  id="edit-assignee"
+                  value={editTaskAssignee}
+                  onChange={(e) => setEditTaskAssignee(e.target.value === "" ? "" : Number(e.target.value))}
+                  className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background"
+                >
+                  <option value="">Unassigned</option>
+                  {projectUsers.map((u) => (
+                    <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <DialogFooter className="flex justify-between items-center sm:justify-between">
+              <Button type="button" variant="destructive" onClick={handleDeleteTask}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete
+              </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                <Button type="submit">Save Changes</Button>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>
