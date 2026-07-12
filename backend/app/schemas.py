@@ -93,3 +93,58 @@ class WeeklyReportResponse(WeeklyReportBase):
 
     class Config:
         from_attributes = True
+
+
+# 4. SPRINT SCHEMAS
+class SprintBase(BaseModel):
+    name: str
+    start_date: date
+    end_date: date
+    goal: Optional[str] = None
+    is_active: bool = True
+
+class SprintCreate(SprintBase):
+    project_id: int
+
+class SprintUpdate(BaseModel):
+    name: Optional[str] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    goal: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class SprintResponse(SprintBase):
+    id: int
+    project_id: int
+
+    class Config:
+        from_attributes = True
+
+# 5. TASK SCHEMAS
+class TaskBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    status: str = "TODO"
+    story_points: Optional[int] = None
+
+class TaskCreate(TaskBase):
+    sprint_id: int
+    assignee_id: Optional[int] = None
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    assignee_id: Optional[int] = None
+    story_points: Optional[int] = None
+
+class TaskUpdateStatus(BaseModel):
+    status: str
+
+class TaskResponse(TaskBase):
+    id: int
+    sprint_id: int
+    assignee_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True

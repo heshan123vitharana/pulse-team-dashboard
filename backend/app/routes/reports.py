@@ -207,6 +207,34 @@ def get_dashboard_metrics(
     }
 
 
+@router.get("/auto-generate/{sprint_id}")
+def auto_generate_report(
+    sprint_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Auto-generate tasks_completed and tasks_planned strings based on a sprint's tasks for the logged-in user."""
+    sprint = db.query(models.Sprint).filter(models.Sprint.id == sprint_id).first()
+    if not sprint:
+        raise HTTPException(status_code=404, detail="Sprint not found")
+        
+    tasks = db.query(models.Task).filter(
+        models.Task.sprint_id == sprint_id,
+        models.Task.assignee_id == current_user.id
+    ).all()
+    
+    completed_tasks = [t for t in tasks if t.status == "DONE"]
+    planned_tasks = [t for t in tasks if t.status in ("TODO", "IN_PROGRESS")]
+    
+    tasks_completed_str = "\n".join([f"- {t.title}" for t in completed_tasks]) if completed_tasks else "None"
+    tasks_planned_str = "\n".join([f"- {t.title}" for t in planned_tasks]) if planned_tasks else "None"
+    
+    return {
+        "tasks_completed": tasks_completed_str,
+        "tasks_planned": tasks_planned_str
+    }
+
+
 @router.get("/{report_id}", response_model=schemas.WeeklyReportResponse)
 def get_report(
     report_id: int,

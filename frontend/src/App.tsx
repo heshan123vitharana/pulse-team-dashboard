@@ -18,6 +18,7 @@ import MyReportsPage from "@/pages/MyReports";
 import ProfilePage from "@/pages/Profile";
 import SettingsPage from "@/pages/Settings";
 import UsersPage from "@/pages/Users";
+import KanbanBoardPage from "@/pages/KanbanBoard";
 
 // ─── Protected Route ──────────────────────────────────────────────────────────
 
@@ -83,6 +84,7 @@ export default function App(): JSX.Element {
               <Route path="/my-reports" element={<MyReportsPage />} />
               <Route path="/submit-report" element={<SubmitReportPage />} />
               <Route path="/submit-report/:id" element={<SubmitReportPage />} />
+              <Route path="/kanban" element={<KanbanBoardPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
               

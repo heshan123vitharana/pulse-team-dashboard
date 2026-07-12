@@ -8,6 +8,8 @@ from .routes import projects as projects_router
 from .routes import reports as reports_router
 from .routes import chat as chat_router
 from .routes import notifications as notifications_router
+from .routes import sprints as sprints_router
+from .routes import tasks as tasks_router
 from .config import settings
 
 # Auto-create all tables on startup
@@ -38,6 +40,8 @@ app.include_router(projects_router.router, prefix="/api/v1/projects", tags=["Pro
 app.include_router(reports_router.router, prefix="/api/v1/reports", tags=["Reports"])
 app.include_router(chat_router.router, prefix="/api/v1/chat", tags=["Chat"])
 app.include_router(notifications_router.router, prefix="/api/v1/notifications", tags=["Notifications"])
+app.include_router(sprints_router.router, prefix="/api/v1/sprints", tags=["Sprints"])
+app.include_router(tasks_router.router, prefix="/api/v1/tasks", tags=["Tasks"])
 
 
 # ---------------------------------------------------------------------------

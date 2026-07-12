@@ -2,6 +2,9 @@ import { type JSX, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getProjects, type Project } from "@/api/projects";
 import { submitReport, updateReport, getReport, type WeeklyReportCreate } from "@/api/reports";
+import { getActiveSprint, autoGenerateReport } from "@/api/agile";
+import { Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +28,38 @@ export default function SubmitReportPage(): JSX.Element {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
+
+  const handleAutoFill = async () => {
+    if (!formData.project_id) {
+      toast.error("Please select a project first.");
+      return;
+    }
+    
+    try {
+      setIsAutoFilling(true);
+      const sprint = await getActiveSprint(formData.project_id);
+      if (!sprint) {
+        toast.error("No active sprint found for this project.");
+        return;
+      }
+      
+      const reportData = await autoGenerateReport(sprint.id);
+      setFormData(prev => ({
+        ...prev,
+        tasks_completed: reportData.tasks_completed,
+        tasks_planned: reportData.tasks_planned,
+        week_start_date: sprint.start_date,
+        week_end_date: sprint.end_date,
+      }));
+      toast.success("Report auto-filled from Active Sprint!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to auto-fill report.");
+    } finally {
+      setIsAutoFilling(false);
+    }
+  };
 
   // Fetch projects and (if editing) the report
   useEffect(() => {
@@ -124,8 +159,22 @@ export default function SubmitReportPage(): JSX.Element {
       <Card>
         <form onSubmit={handleSubmit}>
           <CardHeader className="pb-4">
-            <CardTitle>Report Details</CardTitle>
-            <CardDescription>All fields marked with an asterisk (*) are required.</CardDescription>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <div>
+                <CardTitle>Report Details</CardTitle>
+                <CardDescription>All fields marked with an asterisk (*) are required.</CardDescription>
+              </div>
+              <Button 
+                type="button" 
+                variant="secondary" 
+                className="bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400"
+                onClick={handleAutoFill}
+                disabled={isAutoFilling || isSubmitting || !formData.project_id}
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                {isAutoFilling ? "Auto-Filling..." : "Auto-Fill from Active Sprint"}
+              </Button>
+            </div>
           </CardHeader>
           
           <CardContent className="space-y-6">

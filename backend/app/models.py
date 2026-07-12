@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from sqlalchemy import Integer, String, Text, Date, DateTime, ForeignKey, func, Table, Column
+from sqlalchemy import Integer, String, Text, Date, DateTime, ForeignKey, func, Table, Column, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -40,6 +40,7 @@ class User(Base):
     role = relationship("Role", back_populates="users")
     reports = relationship("WeeklyReport", back_populates="user")
     projects = relationship("Project", secondary=user_projects, back_populates="users")
+    tasks = relationship("Task", back_populates="assignee")
 
 
 # ==========================================
@@ -55,6 +56,7 @@ class Project(Base):
     # Relationships
     reports = relationship("WeeklyReport", back_populates="project")
     users = relationship("User", secondary=user_projects, back_populates="projects")
+    sprints = relationship("Sprint", back_populates="project")
 
 
 # ==========================================
@@ -79,3 +81,41 @@ class WeeklyReport(Base):
     # Relationships
     user = relationship("User", back_populates="reports")
     project = relationship("Project", back_populates="reports")
+
+
+# ==========================================
+# 5. SPRINTS TABLE
+# ==========================================
+class Sprint(Base):
+    __tablename__ = "sprints"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date] = mapped_column(Date, nullable=False)
+    goal: Mapped[str] = mapped_column(Text, nullable=True)
+    project_id: Mapped[int] = mapped_column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Relationships
+    project = relationship("Project", back_populates="sprints")
+    tasks = relationship("Task", back_populates="sprint")
+
+
+# ==========================================
+# 6. TASKS TABLE
+# ==========================================
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(50), default="TODO") # "TODO", "IN_PROGRESS", "DONE"
+    sprint_id: Mapped[int] = mapped_column(Integer, ForeignKey("sprints.id", ondelete="CASCADE"), nullable=False)
+    assignee_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    story_points: Mapped[int] = mapped_column(Integer, nullable=True)
+
+    # Relationships
+    sprint = relationship("Sprint", back_populates="tasks")
+    assignee = relationship("User", back_populates="tasks")
