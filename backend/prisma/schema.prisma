@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Role {
+  id        Int    @id @default(autoincrement())
+  role_name String @unique
+  users     User[]
+
+  @@map("roles")
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  password_hash String
+  role_id       Int
+  created_at    DateTime       @default(now())
+
+  role          Role           @relation(fields: [role_id], references: [id])
+  reports       WeeklyReport[]
+  projects      Project[]      @relation("user_projects")
+  tasks         Task[]
+  comments      Comment[]
+
+  @@map("users")
+}
+
+model Project {
+  id           Int            @id @default(autoincrement())
+  project_name String
+  description  String?
+  
+  reports      WeeklyReport[]
+  users        User[]         @relation("user_projects")
+  sprints      Sprint[]
+  tasks        Task[]
+
+  @@map("projects")
+}
+
+model WeeklyReport {
+  id                Int      @id @default(autoincrement())
+  user_id           Int
+  project_id        Int
+  week_start_date   DateTime
+  week_end_date     DateTime
+  tasks_completed   String
+  tasks_planned     String
+  blockers          String
+  hours_worked      Int?
+  notes             String?
+  submission_status String   @default("Submitted")
+  submitted_at      DateTime @default(now())
+
+  user              User     @relation(fields: [user_id], references: [id])
+  project           Project  @relation(fields: [project_id], references: [id])
+
+  @@map("weekly_reports")
+}
+
+model Sprint {
+  id         Int      @id @default(autoincrement())
+  name       String
+  start_date DateTime
+  end_date   DateTime
+  goal       String?
+  project_id Int
+  is_active  Boolean  @default(true)
+
+  project    Project  @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  tasks      Task[]
+
+  @@map("sprints")
+}
+
+model Task {
+  id             Int       @id @default(autoincrement())
+  title          String
+  description    String?
+  status         String    @default("TODO")
+  project_id     Int
+  sprint_id      Int?
+  assignee_id    Int?
+  story_points   Int?
+  attachment_url String?
+
+  project        Project   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  sprint         Sprint?   @relation(fields: [sprint_id], references: [id], onDelete: Cascade)
+  assignee       User?     @relation(fields: [assignee_id], references: [id], onDelete: SetNull)
+  comments       Comment[]
+  subtasks       Subtask[]
+
+  @@map("tasks")
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  content    String
+  task_id    Int
+  author_id  Int
+  created_at DateTime @default(now())
+
+  task       Task     @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  author     User     @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Subtask {
+  id           Int     @id @default(autoincrement())
+  title        String
+  is_completed Boolean @default(false)
+  task_id      Int
+
+  task         Task    @relation(fields: [task_id], references: [id], onDelete: Cascade)
+
+  @@map("subtasks")
+}
