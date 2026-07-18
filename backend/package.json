@@ -4,9 +4,9 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "start": "npx prisma generate && tsx src/index.ts",
+    "start": "prisma generate && tsx src/index.ts",
     "dev": "tsx watch src/index.ts",
-    "build": "npx prisma generate && tsx src/index.ts"
+    "build": "prisma generate && tsx src/index.ts"
   },
   "keywords": [],
   "author": "",
