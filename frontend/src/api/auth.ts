@@ -54,16 +54,9 @@ const authService = {
    * @throws Re-throws Axios errors so the caller can display them.
    */
   async login(credentials: LoginCredentials): Promise<TokenResponse> {
-    const params = new URLSearchParams();
-    params.append("username", credentials.username);
-    params.append("password", credentials.password);
-
     const response = await apiClient.post<TokenResponse>(
       "/api/v1/auth/login",
-      params,
-      {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      }
+      credentials
     );
 
     const { access_token, role } = response.data;

@@ -71,7 +71,7 @@ router.put('/me', auth_1.authenticate, async (req, res) => {
 // POST /api/v1/auth/login
 // Frontend sends application/x-www-form-urlencoded with `username` + `password`
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password } = req.body || {};
     if (!username || !password) {
         res.status(422).json({ detail: 'username and password are required' });
         return;
