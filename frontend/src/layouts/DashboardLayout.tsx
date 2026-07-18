@@ -42,7 +42,8 @@ export default function DashboardLayout(): JSX.Element {
   const userEmail = authService.getUserEmail();
   const userInitials = userEmail ? userEmail.charAt(0).toUpperCase() : "U";
   
-  const isManager = role?.toLowerCase() === "manager";
+  const isAdmin = role === "Administrator";
+  const isPrivileged = isAdmin || role === "Project Manager";
 
   // WebSocket Connection
   useEffect(() => {
@@ -82,15 +83,19 @@ export default function DashboardLayout(): JSX.Element {
   // Dynamically generate navigation items based on role
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    ...(isManager
+    ...(isPrivileged
       ? [
-          { name: "Team Reports", href: "/team-reports", icon: BarChart3 },
-          { name: "Users", href: "/users", icon: Users }
+          { name: "Team Reports", href: "/team-reports", icon: BarChart3 }
         ]
       : [
           { name: "Submit Report", href: "/submit-report", icon: Plus },
           { name: "My Reports", href: "/my-reports", icon: BarChart3 }
         ]),
+    ...(isAdmin
+      ? [
+          { name: "Users", href: "/users", icon: Users }
+        ]
+      : []),
     { name: "Projects", href: "/projects", icon: FolderKanban },
     { name: "Backlog", href: "/backlog", icon: FolderKanban },
     { name: "Kanban Board", href: "/kanban", icon: FolderKanban },
