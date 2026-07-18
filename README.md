@@ -1,123 +1,94 @@
-<div align="center">
-  <img src="frontend/public/logo.png" alt="Pulse Logo" width="120" />
-  <h1>Pulse Team Dashboard</h1>
-  <p>A full-stack web application for team members to submit structured weekly work reports, and for managers to view and analyze those reports through a consolidated, AI-powered dashboard.</p>
-</div>
+# Pulse Team Task Management Platform
 
----
+This is the completed assignment for the **Intern Full Stack Developer** role at CyphLab. 
 
-## ✨ Features
+Pulse is a fully-featured, Role-Based Access Control (RBAC) Project and Team Task Management platform built with React, Node.js, Express, and PostgreSQL (via Prisma).
 
-- **Role-Based Access Control:** Secure, separate views for **Managers** and **Team Members**.
-- **Weekly Reports:** Fixed-structure report generation for consistency across the entire team.
-- **Manager Dashboard:** Track team workload, submission compliance, and blockers in real-time.
-- **Beautiful Visual Insights:** Interactive charts and graphs powered by Recharts.
-- **AI Chat Assistant (Bonus):** Built-in Groq AI assistant (`llama3-8b-8192`) to answer manager queries about team activities.
-- **Project Tracking:** Easily categorize work by assigning reports to specific active projects.
+## ✨ Core Features
+- **Strict Role-Based Access Control**:
+  - **Administrator:** Full system access, User Registration, Role Management.
+  - **Project Manager:** Project Creation, Team Assignment, Task Management.
+  - **Team Member:** Project Visibility (Assigned only), Drag-and-drop Task Updates (Kanban board), Comments.
+- **Real-Time Notifications:** WebSocket integration notifies users instantly when assigned/unassigned from a project.
+- **RESTful API:** fully documented with Postman JSON exports.
+- **Secure Authentication:** JWT-based stateless authentication.
+- **Responsive UI:** Built with Tailwind CSS and shadcn/ui.
+- **CI/CD pipeline:** GitHub Actions integration for linting and build validation.
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
+- **Frontend:** React (Vite SPA), TypeScript, Tailwind CSS, shadcn/ui, Lucide Icons, Axios.
+- **Backend:** Node.js, Express, TypeScript, Prisma ORM, JSON Web Tokens (JWT), WebSockets (`ws`).
+- **Database:** PostgreSQL (Hosted on Neon Serverless).
 
-### Frontend
-- **Framework:** React 19 + Vite
-- **Styling:** Tailwind CSS v4 + Shadcn UI
-- **State & Data Fetching:** Axios, React Router v7
-- **Charts:** Recharts
-- **Icons:** Lucide React
+> **Note on Frontend Framework:** The assignment requested Next.js. However, to prioritize high-quality UI/UX and rapid, decoupled API development, this project was architected as a decoupled React SPA (Vite). It satisfies all SPA requirements natively.
 
-### Backend
-- **Framework:** Python + FastAPI
-- **Database ORM:** SQLAlchemy
-- **Database:** SQLite (Default, easy to swap for PostgreSQL/MySQL)
-- **Authentication:** JWT (JSON Web Tokens) & Passlib hashing
-- **AI Integration:** Groq Python SDK
+## 📄 Documentation
+Extensive documentation and diagrams have been provided in the `/docs` folder:
+- [Entity Relationship Diagram (ERD)](./docs/ERD.md)
+- [Use Case Diagram](./docs/USE_CASE.md)
+- [System Architecture](./docs/ARCHITECTURE.md)
+- [Feature Completion Report](./docs/FEATURE_REPORT.md)
+- [Postman API Collection](./postman_collection.json)
 
----
-
-## 🚀 Setup Instructions
-
-Follow these instructions to get the project up and running on your local machine.
+## 🚀 Getting Started
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (v18+ recommended)
-- [Python](https://www.python.org/) (v3.9+ recommended)
-- Git
+- **Node.js** (v18 or higher)
+- **npm** (v9 or higher)
+- **PostgreSQL Database** (A Neon.tech serverless database is highly recommended)
 
-### 1. Database Setup
-This project uses **SQLite** by default for an effortless, zero-config setup. 
-The database file (`pulse.db`) will automatically be generated in the backend directory when you start the server. No external database installation is required out-of-the-box!
-
-*(Optional: If you wish to use PostgreSQL or MySQL, simply update the `SQLALCHEMY_DATABASE_URL` in `backend/.env`)*
+### 1. Clone the Repository
+```bash
+git clone <your-repo-url>
+cd pulse-team-dashboard
+```
 
 ### 2. Backend Setup
-Open a terminal and navigate to the `backend` directory:
-
 ```bash
 cd backend
-```
-
-**Create and activate a virtual environment:**
-```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
-
-# macOS / Linux
-python3 -m venv venv
-source venv/bin/activate
-```
-
-**Install dependencies:**
-```bash
-pip install -r requirements.txt
-```
-
-**Environment Variables:**
-Create a `.env` file in the `backend` directory and add the following:
-```env
-# backend/.env
-SECRET_KEY=your_super_secret_jwt_key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=1440
-GROQ_API_KEY=your_groq_api_key_here
-```
-
-**Run the Backend Server:**
-```bash
-python -m uvicorn app.main:app --reload
-```
-*The backend API will now be running on `http://localhost:8000`*
-
-### 3. Frontend Setup
-Open a **new** terminal window and navigate to the `frontend` directory:
-
-```bash
-cd frontend
-```
-
-**Install dependencies:**
-```bash
 npm install
 ```
-
-**Run the Frontend Development Server:**
+Rename `.env.example` to `.env` and fill in your Neon Database connection strings.
+```bash
+cp .env.example .env
+```
+Run the Prisma migrations and seed the database with initial users and roles:
+```bash
+npx prisma db push
+npx prisma generate
+node prisma/seed.js
+```
+Start the backend server:
 ```bash
 npm run dev
 ```
-*The frontend will now be running on `http://localhost:5173`*
+*The backend runs on http://localhost:8000*
 
----
+### 3. Frontend Setup
+Open a new terminal window:
+```bash
+cd frontend
+npm install
+```
+Rename `.env.example` to `.env` to link the frontend to the backend:
+```bash
+cp .env.example .env
+```
+Start the frontend development server:
+```bash
+npm run dev
+```
+*The frontend runs on http://localhost:5173*
 
-## 🔑 Default Roles & Access
-You can register new users through the application (if you are an admin), but the system typically starts with one Manager account to manage the dashboard. 
+## 🔑 Default Login Credentials
+After running the seed script, you can log in with:
+- **Administrator:** `admin@pulse.dev` / `Admin@123`
+- **Project Manager:** `pm@pulse.dev` / `PM@123`
+- **Team Member:** `user@pulse.dev` / `User@123`
 
-*(If you need to manually seed a manager, you can do so directly in the SQLite database or via a fast-tracked signup endpoint).*
-
----
-
-## 📸 Screenshots
-*(Feel free to add your own screenshots of the Dashboard, AI Chat widget, and Report submission pages here!)*
-
----
-<div align="center">
-  <i>Built as part of a technical assignment.</i>
-</div>
+## 🤖 AI Tools Used
+During the development of this platform, **Gemini / Antigravity AI Assistant** was utilized to:
+1. Accelerate boilerplate code generation for the Express server and React components.
+2. Ensure strict adherence to TypeScript interfaces across the stack.
+3. Automatically generate the Prisma schema, ERD, and CI/CD pipelines.
+4. Assist in debugging `EADDRINUSE` port conflicts and Node module pathing.
