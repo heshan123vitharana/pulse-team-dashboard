@@ -23,6 +23,7 @@ const server = http.createServer(app);
 const allowedOrigins = [
   'http://localhost:5173',  // Vite dev server
   'http://localhost:3000',
+  'https://cyphlab.vercel.app',
   process.env.FRONTEND_URL  // Production frontend URL (set in .env)
 ].filter(Boolean) as string[];
 
@@ -32,7 +33,9 @@ app.use(
       // Allow requests with no origin (e.g., curl, mobile apps, Postman)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error(`CORS: origin '${origin}' not allowed`));
+      
+      // Instead of throwing an error that becomes a 500, we pass false to reject CORS gracefully
+      callback(null, false);
     },
     credentials: true
   })

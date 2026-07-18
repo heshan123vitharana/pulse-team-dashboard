@@ -30,8 +30,13 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
 
     req.user = user;
     next();
-  } catch (err) {
-    res.status(401).json({ detail: 'Invalid token' });
+  } catch (err: any) {
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      res.status(401).json({ detail: 'Invalid token' });
+    } else {
+      console.error('Authentication Database Error:', err);
+      res.status(500).json({ detail: 'Internal server error during authentication' });
+    }
   }
 };
 
