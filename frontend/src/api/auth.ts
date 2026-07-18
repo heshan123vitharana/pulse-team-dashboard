@@ -8,11 +8,17 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface Role {
+  id: number;
+  role_name: string;
+}
+
 export interface User {
   id: number;
   name: string;
   email: string;
   role_id: number;
+  role?: Role;
 }
 
 export interface RegisterData {
@@ -109,6 +115,12 @@ const authService = {
       console.error("Failed to decode JWT token:", e);
       return null;
     }
+  },
+
+  /** Fetches all roles available in the system */
+  async getRoles(): Promise<Role[]> {
+    const response = await apiClient.get<Role[]>("/api/v1/auth/roles");
+    return response.data;
   },
 
   /** Fetches all users (Manager only). */

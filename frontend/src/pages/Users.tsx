@@ -1,6 +1,6 @@
 import { type JSX, useState, useEffect } from "react";
 import { Plus, Users } from "lucide-react";
-import authService, { type User, type RegisterData } from "@/api/auth";
+import authService, { type User, type RegisterData, type Role } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import {
 
 export default function UsersPage(): JSX.Element {
   const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,13 +30,17 @@ export default function UsersPage(): JSX.Element {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [roleId, setRoleId] = useState<number>(2); // 2 = Team Member by default
+  const [roleId, setRoleId] = useState<number>(3); // Default to Team Member (id: 3)
 
-  const fetchUsers = async () => {
+  const fetchUsersAndRoles = async () => {
     try {
       setLoading(true);
-      const data = await authService.getUsers();
-      setUsers(data);
+      const [usersData, rolesData] = await Promise.all([
+        authService.getUsers(),
+        authService.getRoles()
+      ]);
+      setUsers(usersData);
+      setRoles(rolesData);
     } catch (err) {
       console.error("Failed to load users:", err);
       setError("Could not load users. Please refresh the page.");
@@ -45,7 +50,7 @@ export default function UsersPage(): JSX.Element {
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsersAndRoles();
   }, []);
 
   const handleAddUser = async (e: React.FormEvent) => {
@@ -72,9 +77,9 @@ export default function UsersPage(): JSX.Element {
       setName("");
       setEmail("");
       setPassword("");
-      setRoleId(2);
+      setRoleId(3);
       
-      await fetchUsers();
+      await fetchUsersAndRoles();
     } catch (err: any) {
       console.error("Failed to add user:", err);
       const detail = err?.response?.data?.detail;
@@ -90,7 +95,7 @@ export default function UsersPage(): JSX.Element {
       setName("");
       setEmail("");
       setPassword("");
-      setRoleId(2);
+      setRoleId(3);
       setFormError(null);
     }
   };
@@ -166,8 +171,11 @@ export default function UsersPage(): JSX.Element {
                     disabled={isSubmitting}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <option value={2}>Team Member</option>
-                    <option value={1}>Manager / Admin</option>
+                    {roles.map(role => (
+                      <option key={role.id} value={role.id}>
+                        {role.role_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -228,11 +236,13 @@ export default function UsersPage(): JSX.Element {
                       <td className="px-4 py-3">{user.email}</td>
                       <td className="px-4 py-3 text-right">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          user.role_id === 1 
+                          user.role?.role_name === "Administrator" 
+                            ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                            : user.role?.role_name === "Project Manager"
                             ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
                             : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
                         }`}>
-                          {user.role_id === 1 ? "Manager" : "Team Member"}
+                          {user.role?.role_name || `Role ${user.role_id}`}
                         </span>
                       </td>
                     </tr>
@@ -258,11 +268,13 @@ export default function UsersPage(): JSX.Element {
                       {user.name}
                     </div>
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                      user.role_id === 1 
+                      user.role?.role_name === "Administrator" 
+                        ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                        : user.role?.role_name === "Project Manager"
                         ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
                         : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
                     }`}>
-                      {user.role_id === 1 ? "Manager" : "Team Member"}
+                      {user.role?.role_name || `Role ${user.role_id}`}
                     </span>
                   </div>
                   <div className="text-sm text-muted-foreground">
