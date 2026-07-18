@@ -39,16 +39,16 @@ function ProtectedRoute(): JSX.Element {
   return <Outlet />;
 }
 
-// ─── Manager Route ────────────────────────────────────────────────────────────
+// ─── Privileged Route ────────────────────────────────────────────────────────────
 
 /**
- * Guards child routes so only Managers can access them.
- * Redirects to dashboard if the user does not have the 'manager' role.
+ * Guards child routes so only Administrators and Project Managers can access them.
+ * Redirects to dashboard if the user does not have sufficient privileges.
  */
-function ManagerRoute(): JSX.Element {
+function PrivilegedRoute(): JSX.Element {
   const role = authService.getRole();
   
-  if (role?.toLowerCase() !== "manager") {
+  if (role !== "Administrator" && role !== "Project Manager") {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -90,8 +90,8 @@ export default function App(): JSX.Element {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
               
-              {/* Manager-only routes */}
-              <Route element={<ManagerRoute />}>
+              {/* Privileged routes */}
+              <Route element={<PrivilegedRoute />}>
                 <Route path="/team-reports" element={<TeamReportsPage />} />
                 <Route path="/users" element={<UsersPage />} />
               </Route>
