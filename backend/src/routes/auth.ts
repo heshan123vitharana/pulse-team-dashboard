@@ -78,33 +78,39 @@ router.put('/me', authenticate, async (req: AuthRequest, res: Response): Promise
 });
 
 // POST /api/v1/auth/login
-// Frontend sends application/x-www-form-urlencoded with `username` + `password`
+// Frontend sends application/json with `username` + `password`
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
-  const { username, password } = req.body || {};
+  try {
+    const { username, password } = req.body || {};
 
-  if (!username || !password) {
-    res.status(422).json({ detail: 'username and password are required' });
-    return;
+    if (!username || !password) {
+      res.status(422).json({ detail: 'username and password are required' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: username },
+      include: { role: true }
+    });
+
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+      res.status(401).json({ detail: 'Incorrect email or password' });
+      return;
+    }
+
+    const role_name = user.role.role_name;
+    const access_token = jwt.sign(
+      { sub: user.email, role: role_name },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({ access_token, token_type: 'bearer', role: role_name });
+  } catch (err: any) {
+    console.error('LOGIN ERROR:', err.message);
+    console.error('LOGIN ERROR DETAILS:', err);
+    res.status(500).json({ detail: 'Internal server error during login' });
   }
-
-  const user = await prisma.user.findUnique({
-    where: { email: username },
-    include: { role: true }
-  });
-
-  if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-    res.status(401).json({ detail: 'Incorrect email or password' });
-    return;
-  }
-
-  const role_name = user.role.role_name;
-  const access_token = jwt.sign(
-    { sub: user.email, role: role_name },
-    JWT_SECRET,
-    { expiresIn: '24h' }
-  );
-
-  res.json({ access_token, token_type: 'bearer', role: role_name });
 });
 
 export default router;
