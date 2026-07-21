@@ -1,4 +1,4 @@
-import { type JSX, useState, useEffect } from "react";
+import { type JSX, useState, useEffect, useRef } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
 
@@ -46,17 +46,29 @@ export default function DashboardLayout(): JSX.Element {
   const isPrivileged = isAdmin || role === "Project Manager";
 
   // WebSocket Connection
+  const wsRef = useRef<WebSocket | null>(null);
+
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_STORAGE_KEY);
     if (!token) return;
+
+    let cancelled = false;
 
     // Build ws:// or wss:// URL based on VITE_API_BASE_URL
     const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
     const wsBaseUrl = baseUrl.replace(/^http/, "ws");
     const wsUrl = `${wsBaseUrl}/api/v1/notifications/ws?token=${token}`;
     const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      if (cancelled) {
+        ws.close();
+      }
+    };
 
     ws.onmessage = (event) => {
+      if (cancelled) return;
       try {
         const data = JSON.parse(event.data);
         if (data.type === "PROJECT_ASSIGNED") {
@@ -69,12 +81,16 @@ export default function DashboardLayout(): JSX.Element {
       }
     };
 
-    ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
+    ws.onerror = () => {
+      // Suppress errors from connections cancelled by Strict Mode
+      if (!cancelled) {
+        console.error("WebSocket connection error");
+      }
     };
 
     return () => {
-      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+      cancelled = true;
+      if (ws.readyState === WebSocket.OPEN) {
         ws.close();
       }
     };
